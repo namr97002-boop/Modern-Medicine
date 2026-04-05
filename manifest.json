@@ -1,0 +1,39 @@
+{
+  "name": "الشركة الدوائية الحديثة",
+  "short_name": "نظام بسام",
+  "description": "الشركة الدوائية الحديثة - نظام الدكتور بسام العامري | الإصدار الذهبي",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#d4af37",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/fluency/48/000000/computer.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/96/000000/computer.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/144/000000/computer.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/192/000000/computer.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/512/000000/computer.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
