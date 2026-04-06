@@ -1,6 +1,27 @@
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
+<script>
+    (function() {
+        var style = document.createElement('style');
+        style.textContent = '#loginScreen { display: block !important; }';
+        document.head.appendChild(style);
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                var screen = document.getElementById('loginScreen');
+                if (screen) screen.style.display = 'block';
+            });
+        } else {
+            var screen = document.getElementById('loginScreen');
+            if (screen) screen.style.display = 'block';
+        }
+        
+        window.addEventListener('online', function() {
+            location.reload();
+        });
+    })();
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>الشركة الدوائية الحديثة | نظام الدكتور بسام العامري - الإصدار الذهبي</title>
@@ -8,7 +29,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="نظام بسام">
-    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/192/000000/computer.png">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/cKsk4K3c/17754844627412496861837434544918-copy-275x270.jpg">
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -192,7 +213,69 @@
         .btn-sync { background: linear-gradient(135deg, #22c55e, #16a34a); border: none; color: white; padding: 10px 20px; border-radius: 40px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.85rem; transition: all 0.3s ease; }
         .btn-sync:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(34,197,94,0.4); }
         .pending-badge { background: #ef4444; color: white; border-radius: 20px; padding: 2px 10px; font-size: 0.7rem; font-weight: bold; margin-right: 5px; }
-        @media (max-width: 768px) { .header h1 { font-size: 1.5rem; } .content { padding: 20px; } .item-row { flex-direction: column; } .item-row select, .item-row input { width: 100%; } .system-time-header { font-size: 0.7rem; top: 12px; right: 12px; padding: 5px 12px; } .logout-header { top: 12px; left: 12px; flex-wrap: wrap; } .logout-btn-header, .theme-btn { padding: 6px 12px; font-size: 0.7rem; } .total-val { font-size: 28px; } .alert { white-space: normal; text-align: center; max-width: 90%; } .customer-total-row { flex-direction: column; text-align: center; gap: 10px; } .customer-stats { text-align: center; } .grand-total-summary { flex-direction: column; gap: 10px; text-align: center; } .stats-rank { flex-direction: column; text-align: center; gap: 8px; } .rank-number { margin-bottom: 5px; } }
+        
+        /* جداول البحث عن عميل - بسيطة وواضحة */
+        .full-invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0,0,0,0.4);
+            border-radius: 16px;
+            overflow-x: auto;
+            display: block;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        .full-invoice-table th, .full-invoice-table td {
+            border: 1px solid rgba(255,215,0,0.3);
+            padding: 8px 6px;
+            text-align: center;
+            color: #eee;
+            white-space: nowrap;
+        }
+        .full-invoice-table th {
+            background: rgba(212, 175, 55, 0.3);
+            color: #ffd700;
+            font-weight: 800;
+        }
+        .full-invoice-table td {
+            background: rgba(0,0,0,0.5);
+        }
+        .invoice-card {
+            background: linear-gradient(135deg, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
+            border-radius: 24px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+        .invoice-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255,215,0,0.2);
+        }
+        .invoice-index {
+            background: #d4af37;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 800;
+        }
+        .invoice-total-badge {
+            background: linear-gradient(135deg, #ffd700, #ffb347);
+            color: #000;
+            padding: 4px 15px;
+            border-radius: 20px;
+            font-weight: 800;
+        }
+        .scrollable-table {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) { .header h1 { font-size: 1.5rem; } .content { padding: 20px; } .item-row { flex-direction: column; } .item-row select, .item-row input { width: 100%; } .system-time-header { font-size: 0.7rem; top: 12px; right: 12px; padding: 5px 12px; } .logout-header { top: 12px; left: 12px; flex-wrap: wrap; } .logout-btn-header, .theme-btn { padding: 6px 12px; font-size: 0.7rem; } .total-val { font-size: 28px; } .alert { white-space: normal; text-align: center; max-width: 90%; } .customer-total-row { flex-direction: column; text-align: center; gap: 10px; } .customer-stats { text-align: center; } .grand-total-summary { flex-direction: column; gap: 10px; text-align: center; } .stats-rank { flex-direction: column; text-align: center; gap: 8px; } .rank-number { margin-bottom: 5px; } .full-invoice-table { font-size: 10px; } .full-invoice-table th, .full-invoice-table td { padding: 4px 3px; } }
         .expired-item { border-right: 4px solid #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; }
         .warning-item { border-right: 4px solid #f59e0b !important; background: rgba(245, 158, 11, 0.1) !important; }
         .detailed-invoice-row { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 1px solid #ffd70055; margin-bottom: 25px; border-radius: 30px; overflow: hidden; }
@@ -350,7 +433,7 @@
     let currentReportTitle = "";
     const SUPPLIER_NAME = "الشركة الدوائية الحديثة";
     let deferredPrompt = null;
-    let isSaving = false;  // منع التكرار
+    let isSaving = false;
     
     // ========== IndexedDB Setup ==========
     let db = null;
@@ -1100,7 +1183,6 @@
     async function exportReportToPDF() { const reportContent = document.getElementById('reportData').innerHTML; if (!reportContent || reportContent.includes('لا توجد')) { showMsg('⚠️ لا توجد بيانات للتصدير', 'error'); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); doc.setFont('helvetica'); doc.setFontSize(18); const title = document.getElementById('modalTitle').innerText.replace(/[^\u0600-\u06FF\s]/g, ''); doc.text(title, 105, 20, { align: 'center' }); doc.setFontSize(10); doc.text(`تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}`, 105, 28, { align: 'center' }); const elements = document.querySelectorAll('#reportData .statement-row, #reportData .customer-total-row, #reportData .grand-total-summary, #reportData .stats-card, #reportData .detailed-invoice-row, #reportData .customer-grand-total'); let yPos = 40; for (let element of elements) { const text = element.innerText; if (yPos > 270) { doc.addPage(); yPos = 20; } doc.setFontSize(10); const lines = doc.splitTextToSize(text, 170); doc.text(lines, 15, yPos); yPos += (lines.length * 6) + 4; } doc.save(`تقرير_${title}_${new Date().toISOString().slice(0,10)}.pdf`); showMsg('📄 تم تصدير التقرير كـ PDF بنجاح', 'success'); }
     function exportReportToExcel() { const reportContent = document.getElementById('reportData').innerHTML; if (!reportContent || reportContent.includes('لا توجد')) { showMsg('⚠️ لا توجد بيانات للتصدير', 'error'); return; } const tempDiv = document.createElement('div'); tempDiv.innerHTML = reportContent; const data = []; const title = document.getElementById('modalTitle').innerText; data.push([title]); data.push([`تاريخ التصدير: ${new Date().toLocaleDateString('ar-EG')}`]); data.push([]); const rows = tempDiv.querySelectorAll('.statement-row, .customer-total-row, .grand-total-summary, .stats-rank, .detailed-invoice-row, .customer-grand-total'); rows.forEach(row => { const text = row.innerText.trim(); if (text) data.push([text]); }); const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'التقرير'); XLSX.writeFile(wb, `تقرير_${title}_${new Date().toISOString().slice(0,10)}.xlsx`); showMsg('📊 تم تصدير التقرير كـ Excel بنجاح', 'success'); }
     
-    // دالة الحفظ المعدلة - تمنع التكرار
     async function confirmSave() {
         if (isSaving) {
             showMsg('⚠️ جاري حفظ الفاتورة حالياً، يرجى الانتظار...', 'warning');
@@ -1173,6 +1255,7 @@
         pendingSaveData = null;
     }
     
+    // ========== البحث عن عميل - عرض جميع الصفوف فقط بدون تفصيل ==========
     async function searchCustomerByName() {
         const customerName = prompt("📝 أدخل اسم العميل الذي تريد البحث عن فواتيره:");
         
@@ -1195,132 +1278,142 @@
         const localPending = await getPendingInvoices();
         const localPendingSales = localPending.filter(p => p.mode === 'sale');
         
-        const allInvoices = [];
+        const allRows = [];
         
+        // معالجة البيانات من الخادم (كل صف كامل)
         salesData.forEach(row => {
-            if (row && row[0] && row[0].trim() === searchName) {
-                allInvoices.push({
-                    customer: row[0],
-                    items: (() => { try { return JSON.parse(row[1] || '[]'); } catch(e) { return []; } })(),
-                    total: (() => { for(let i=0; i<row.length; i++) if(typeof row[i] === 'number' && row[i] > 0) return row[i]; return 0; })(),
-                    date: (() => { for(let i=0; i<row.length; i++) if(typeof row[i] === 'string' && row[i].match(/^\d{4}-\d{2}-\d{2}/)) return row[i]; return ''; })(),
-                    time: (() => { for(let i=0; i<row.length; i++) if(typeof row[i] === 'string' && row[i].match(/\d{2}:\d{2}:\d{2}/)) return row[i]; return ''; })(),
+            if (row && row.length >= 1 && row[0] && row[0].trim() === searchName) {
+                allRows.push({
                     fullRow: row,
                     source: 'server'
                 });
             }
         });
         
+        // معالجة البيانات المحلية (المتزامنة سابقاً)
         localSales.forEach(inv => {
             if (inv.customer === searchName) {
-                allInvoices.push({
-                    customer: inv.customer,
-                    items: inv.items || [],
-                    total: inv.total || 0,
-                    date: inv.date || '',
-                    time: inv.time || '',
-                    fullRow: [],
+                const fullRowArray = [
+                    inv.customer,
+                    JSON.stringify(inv.items || []),
+                    inv.date || '',
+                    inv.time || '',
+                    inv.total || 0,
+                    '', '', '', '', ''
+                ];
+                allRows.push({
+                    fullRow: fullRowArray,
                     source: 'local'
                 });
             }
         });
         
+        // معالجة الفواتير المعلقة (غير المتزامنة)
         localPendingSales.forEach(inv => {
             if (inv.person === searchName) {
-                allInvoices.push({
-                    customer: inv.person,
-                    items: inv.items || [],
-                    total: inv.total || 0,
-                    date: inv.date || '',
-                    time: inv.time || '',
-                    fullRow: [],
+                const fullRowArray = [
+                    inv.person,
+                    JSON.stringify(inv.items || []),
+                    inv.date || '',
+                    inv.time || '',
+                    inv.total || 0,
+                    '', '', '', '', ''
+                ];
+                allRows.push({
+                    fullRow: fullRowArray,
                     source: 'pending',
                     isPending: true
                 });
             }
         });
         
-        allInvoices.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        // ترتيب حسب التاريخ (الأحدث أولاً)
+        allRows.sort((a, b) => {
+            const dateA = a.fullRow[2] || '';
+            const dateB = b.fullRow[2] || '';
+            return dateB.localeCompare(dateA);
+        });
         
         const container = document.getElementById('reportData');
         currentReportTitle = `نتائج البحث عن العميل: ${searchName}`;
         document.getElementById('modalTitle').innerHTML = `<i class="fas fa-search"></i> ${currentReportTitle}`;
         container.innerHTML = '';
-        currentReportData = allInvoices;
+        currentReportData = allRows;
         
-        if (allInvoices.length === 0) {
+        if (allRows.length === 0) {
             container.innerHTML = `<div style="text-align:center; padding:40px;">
                 <i class="fas fa-user-slash" style="font-size: 50px; color: #ffd700;"></i><br>
                 ✨ لا توجد فواتير للعميل "${searchName}" ✨
             </div>`;
         } else {
             let grandTotal = 0;
-            allInvoices.forEach((inv, idx) => {
-                grandTotal += inv.total;
-                const displayDate = inv.date || 'تاريخ غير محدد';
-                const displayTime = inv.time || 'وقت غير محدد';
-                const pendingBadge = inv.isPending ? '<span class="pending-badge">معلقة (غير متزامنة)</span>' : '';
-                
-                let itemsHtml = '';
-                if (inv.items && inv.items.length > 0) {
-                    itemsHtml = `<table class="invoice-items-table">
+            const columnLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+            
+            // عنوان الجدول
+            let tableHtml = `
+                <div style="overflow-x: auto; margin-bottom: 25px;">
+                    <table class="full-invoice-table" style="min-width: 800px;">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>الصنف</th>
-                                <th>الكمية</th>
-                                <th>السعر (ريال)</th>
-                                <th>الإجمالي (ريال)</th>
+                                ${columnLetters.map(col => `<th>العمود ${col}</th>`).join('')}
+                                <th>الحالة</th>
                             </tr>
                         </thead>
-                        <tbody>`;
-                    inv.items.forEach((item, itemIdx) => {
-                        const itemName = item.name || 'غير معروف';
-                        const quantity = item.quantity || 0;
-                        const price = item.price || 0;
-                        const itemTotal = quantity * price;
-                        itemsHtml += `
-                            <tr>
-                                <td>${itemIdx + 1}</td>
-                                <td>${itemName}</td>
-                                <td>${quantity}</td>
-                                <td>${Number(price).toLocaleString()}</td>
-                                <td>${Number(itemTotal).toLocaleString()}</td>
-                            </tr>
-                        `;
-                    });
-                    itemsHtml += `</tbody></table>`;
-                } else {
-                    itemsHtml = '<div style="padding:15px; text-align:center; color:#aaa;">⚠️ لا توجد تفاصيل للأصناف في هذه الفاتورة</div>';
-                }
+                        <tbody>
+            `;
+            
+            allRows.forEach((item, idx) => {
+                const row = item.fullRow;
                 
-                container.innerHTML += `
-                    <div class="detailed-invoice-row">
-                        <div class="invoice-header-detailed">
-                            <div><i class="far fa-calendar-alt"></i> <strong>التاريخ:</strong> ${displayDate} | <strong>الوقت:</strong> ${displayTime} ${pendingBadge}</div>
-                            <div class="invoice-total"><i class="fas fa-coins"></i> ${Number(inv.total).toLocaleString()} ريال</div>
-                        </div>
-                        ${itemsHtml}
-                    </div>
-                `;
+                // حساب الإجمالي
+                let totalAmount = 0;
+                for (let i = 0; i < row.length; i++) {
+                    if (typeof row[i] === 'number' && row[i] > 0) {
+                        totalAmount = row[i];
+                        break;
+                    }
+                    if (typeof row[i] === 'string' && !isNaN(parseFloat(row[i])) && parseFloat(row[i]) > 0 && row[i].length < 10) {
+                        totalAmount = parseFloat(row[i]);
+                        break;
+                    }
+                }
+                if (totalAmount === 0 && row[4] && !isNaN(parseFloat(row[4]))) totalAmount = parseFloat(row[4]);
+                if (totalAmount === 0 && row[5] && !isNaN(parseFloat(row[5]))) totalAmount = parseFloat(row[5]);
+                
+                grandTotal += totalAmount;
+                
+                const statusBadge = item.isPending ? '<span class="pending-badge">⏳ معلقة</span>' : '<span style="color:#22c55e;">✓ متزامنة</span>';
+                
+                tableHtml += `<tr>`;
+                for (let col = 0; col < columnLetters.length; col++) {
+                    let cellValue = row[col];
+                    if (cellValue === undefined || cellValue === null) cellValue = '';
+                    if (typeof cellValue === 'object') cellValue = JSON.stringify(cellValue);
+                    if (cellValue.length > 40) cellValue = cellValue.substring(0, 40) + '...';
+                    tableHtml += `<td title="${(row[col] || '').toString().replace(/"/g, '&quot;')}">${cellValue}</td>`;
+                }
+                tableHtml += `<td style="text-align:center;">${statusBadge}</td>`;
+                tableHtml += `</tr>`;
             });
             
-            container.innerHTML += `
-                <div class="customer-grand-total">
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="customer-grand-total" style="background: linear-gradient(135deg, #ffd700, #b8860b); margin-top: 20px;">
                     <i class="fas fa-chart-line"></i>
                     <small>إجمالي جميع فواتير العميل</small>
                     <span>${searchName}</span>
                     <span style="font-size: 2rem; margin-top: 8px;">${grandTotal.toLocaleString()} ريال</span>
-                    <small>(إجمالي ${allInvoices.length} فاتورة)</small>
+                    <small>(إجمالي ${allRows.length} فاتورة)</small>
                 </div>
-            `;
-            
-            container.innerHTML += `
                 <div class="grand-total-summary" style="margin-top: 15px; background: linear-gradient(135deg, rgba(255,215,0,0.4), rgba(255,180,0,0.3));">
                     <span><i class="fas fa-chart-line"></i> 🏆 إجمالي مشتريات العميل "${searchName}"</span>
                     <span style="font-size: 1.8rem;">${grandTotal.toLocaleString()} ريال</span>
                 </div>
             `;
+            
+            container.innerHTML = tableHtml;
         }
         
         document.getElementById('reportModal').style.display = 'flex';
