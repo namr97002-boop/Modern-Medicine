@@ -31,14 +31,65 @@
     <meta name="apple-mobile-web-app-title" content="نظام بسام">
     <link rel="apple-touch-icon" href="https://i.ibb.co/cKsk4K3c/17754844627412496861837434544918-copy-275x270.jpg">
     
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- أنماط مدمجة تعمل بدون إنترنت -->
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        /* خطوط احتياطية تعمل بدون نت */
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Segoe UI', 'Tahoma', 'Arial', 'Cairo', sans-serif; 
+        }
+        
+        /* أيقونات Unicode بسيطة بديلة لـ Font Awesome */
+        .fas, .far, .fab {
+            display: inline-block;
+            margin-left: 6px;
+            margin-right: 6px;
+        }
+        .fa-star-of-life:before { content: "⚕️"; }
+        .fa-user-md:before { content: "👨‍⚕️"; }
+        .fa-capsules:before { content: "💊"; }
+        .fa-coins:before { content: "💰"; }
+        .fa-eye:before { content: "👁️"; }
+        .fa-plus-circle:before { content: "➕"; }
+        .fa-trash-alt:before { content: "🗑️"; }
+        .fa-sign-out-alt:before { content: "🚪"; }
+        .fa-sun:before { content: "☀️"; }
+        .fa-moon:before { content: "🌙"; }
+        .fa-download:before { content: "⬇️"; }
+        .fa-sync-alt:before { content: "🔄"; }
+        .fa-wifi:before { content: "📶"; }
+        .fa-tag:before { content: "🏷️"; }
+        .fa-dolly:before { content: "📦"; }
+        .fa-user-tie:before { content: "👔"; }
+        .fa-search:before { content: "🔍"; }
+        .fa-truck-ramp-box:before { content: "🚚"; }
+        .fa-building:before { content: "🏢"; }
+        .fa-receipt:before { content: "🧾"; }
+        .fa-file-invoice:before { content: "📄"; }
+        .fa-chart-line:before { content: "📈"; }
+        .fa-chart-simple:before { content: "📊"; }
+        .fa-users:before { content: "👥"; }
+        .fa-trophy:before { content: "🏆"; }
+        .fa-chart-pie:before { content: "🥧"; }
+        .fa-crown:before { content: "👑"; }
+        .fa-file-pdf:before { content: "📕"; }
+        .fa-file-excel:before { content: "📗"; }
+        .fa-print:before { content: "🖨️"; }
+        .fa-save:before { content: "💾"; }
+        .fa-arrow-right:before { content: "➡️"; }
+        .fa-arrow-up:before { content: "⬆️"; }
+        .fa-user-circle:before { content: "👤"; }
+        .fa-calendar-alt:before { content: "📅"; }
+        .fa-clock:before { content: "⏰"; }
+        .fa-chart-simple:before { content: "📊"; }
+        .fa-spinner:before { content: "⏳"; }
+        .fa-check:before { content: "✅"; }
+        .fa-times:before { content: "❌"; }
+        .fa-exclamation-triangle:before { content: "⚠️"; }
+        .fa-info-circle:before { content: "ℹ️"; }
+        
         body { background: radial-gradient(circle at 20% 30%, #0a0a0f, #010101); min-height: 100vh; transition: all 0.3s ease; overflow-x: hidden; }
         body.theme-light { background: radial-gradient(circle at 20% 30%, #f5f5f5, #e0e0e0); }
         body.theme-light .main-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); }
@@ -67,6 +118,11 @@
         @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
         @keyframes glowPulse { 0% { box-shadow: 0 0 5px rgba(212, 175, 55, 0.3); } 100% { box-shadow: 0 0 25px rgba(212, 175, 55, 0.7); } }
         @keyframes slideDown { from { opacity: 0; transform: translateX(-50%) translateY(-30px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+        
         #loginScreen { position: relative; width: 92%; max-width: 450px; background: rgba(10, 14, 19, 0.95); backdrop-filter: blur(20px); border-radius: 60px; border: 2px solid rgba(212, 175, 55, 0.7); padding: 35px 28px 40px; text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(212, 175, 55, 0.3) inset; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); margin: 25px auto; z-index: 10; animation: float 6s ease-in-out infinite; }
         #loginScreen:hover { transform: translateY(-5px); box-shadow: 0 40px 70px rgba(0,0,0,0.7), 0 0 0 2px rgba(212, 175, 55, 0.5) inset; }
         .logo-section { margin-bottom: 20px; position: relative; }
@@ -98,7 +154,6 @@
         .main-card:hover { transform: translateY(-5px); }
         .header { background: linear-gradient(135deg, rgba(20, 15, 45, 0.98), rgba(5, 3, 15, 0.99)); padding: 35px 25px; text-align: center; border-bottom: 3px solid #ffd700; position: relative; overflow: hidden; }
         .header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%); animation: rotate 20s linear infinite; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .header h1 { font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, #fff5e6, #ffd700, #ffb347, #ffd700); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 3s linear infinite; position: relative; z-index: 1; }
         .header p { font-size: 0.95rem; background: linear-gradient(135deg, #e8e0c8, #c9ae5d); -webkit-background-clip: text; background-clip: text; color: transparent; margin-top: 12px; font-weight: 700; position: relative; z-index: 1; }
         .reports-bar { display: flex; gap: 15px; padding: 18px 25px; justify-content: center; background: linear-gradient(95deg, rgba(0,0,0,0.6), rgba(255,215,0,0.1)); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,215,0,0.3); flex-wrap: wrap; }
@@ -128,7 +183,6 @@
         .search-result-item:hover { background: rgba(255, 215, 0, 0.2); transform: translateX(-5px); }
         .search-result-price { color: #ffd700; font-weight: bold; }
         .item-row { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; flex-wrap: wrap; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         .item-row select { flex: 2; }
         .item-row input { flex: 1; min-width: 110px; }
         .btn { padding: 12px 20px; border-radius: 40px; border: none; cursor: pointer; font-weight: 800; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
@@ -140,13 +194,11 @@
         .btn-preview:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4); }
         .total-box { background: linear-gradient(145deg, rgba(255,215,0,0.15), rgba(0, 0, 0, 0.8)); padding: 25px; border-radius: 48px; text-align: center; border: 2px solid #ffd700; margin-bottom: 25px; backdrop-filter: blur(5px); }
         .total-val { font-size: 42px; font-weight: 900; background: linear-gradient(135deg, #ffeaac, #ffd700, #ffb347); -webkit-background-clip: text; background-clip: text; color: transparent; animation: pulse 1.5s ease-in-out infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
         .action-buttons { display: flex; gap: 18px; margin-top: 25px; }
         .action-buttons .btn { flex: 1; }
         .company-badge { background: linear-gradient(135deg, #ffd700, #ffb347); color: #ffffff; padding: 6px 16px; border-radius: 40px; font-weight: 800; font-size: 0.75rem; }
         .modal-preview { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.98); z-index: 2000; backdrop-filter: blur(25px); align-items: center; justify-content: center; overflow-y: auto; padding: 20px; }
         .preview-content { background: linear-gradient(145deg, #0f0e1a, #030207); width: 95%; max-width: 850px; border-radius: 60px; border: 2px solid #ffd700; padding: 35px; box-shadow: 0 0 80px rgba(255, 215, 0, 0.6); max-height: 90vh; overflow-y: auto; animation: slideUp 0.4s ease; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
         .preview-header { text-align: center; border-bottom: 2px solid #ffd700; padding-bottom: 20px; margin-bottom: 25px; }
         .preview-header h2 { font-size: 28px; background: linear-gradient(135deg, #ffd700, #ffb347); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .preview-header p { color: #ffffff; }
@@ -423,6 +475,35 @@
 </div>
 
 <script>
+    // ========== تحميل المكتبات الخارجية فقط عند الاتصال ==========
+    function loadExternalLibraries() {
+        if (!navigator.onLine) return;
+        
+        // تحميل XLSX فقط إذا لم يكن موجوداً
+        if (typeof XLSX === 'undefined') {
+            var xlsxScript = document.createElement('script');
+            xlsxScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+            document.head.appendChild(xlsxScript);
+        }
+        
+        // تحميل jsPDF
+        if (typeof jspdf === 'undefined') {
+            var jspdfScript = document.createElement('script');
+            jspdfScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+            document.head.appendChild(jspdfScript);
+        }
+        
+        // تحميل html2canvas
+        if (typeof html2canvas === 'undefined') {
+            var html2canvasScript = document.createElement('script');
+            html2canvasScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            document.head.appendChild(html2canvasScript);
+        }
+    }
+    
+    // محاولة تحميل المكتبات بعد تحميل الصفحة
+    setTimeout(loadExternalLibraries, 1000);
+    
     // ========== المتغيرات العامة ==========
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVTRwDNpvaMouaGMuOxTh-UBLOCxeRmV28BRstHYRm0fg8ULWJ_5t9lCQR0OR1X7Ls9Q/exec";
     let inventoryData = [];
@@ -765,6 +846,7 @@
         if (isOnline) {
             statusDiv.className = 'sync-status online';
             statusText.innerHTML = '🟢 متصل';
+            loadExternalLibraries();
         } else {
             statusDiv.className = 'sync-status offline';
             statusText.innerHTML = '🔴 غير متصل (يعمل بدون نت)';
@@ -1175,13 +1257,13 @@
     
     function showPreview() { const invoiceData = getInvoiceData(); if (!invoiceData) return; pendingSaveData = invoiceData; const modeText = invoiceData.mode === 'sale' ? 'فاتورة بيع' : 'فاتورة شراء'; const personLabel = invoiceData.mode === 'sale' ? 'العميل' : 'المورد'; let itemsHtml = ''; invoiceData.items.forEach((item, index) => { itemsHtml += `<tr><td>${index + 1}</td><td>${item.name}</td><td>${item.quantity}</td><td>${item.price.toLocaleString()}</td><td>${item.total.toLocaleString()}</td></tr>`; }); const previewHtml = `<div class="invoice-details"><div><span>📄 نوع الفاتورة:</span><span>${modeText}</span></div><div><span>👤 ${personLabel}:</span><span>${invoiceData.person}</span></div><div><span>📅 التاريخ:</span><span>${invoiceData.date}</span></div><div><span>⏰ الوقت:</span><span>${invoiceData.time}</span></div></div><table class="preview-table" id="invoiceTableForExport"><thead><tr><th>#</th><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead><tbody>${itemsHtml}</tbody></table><div class="preview-total"><h3>الإجمالي الكلي: ${invoiceData.total.toLocaleString()} ريال</h3></div>`; document.getElementById('previewDetails').innerHTML = previewHtml; document.getElementById('previewModal').style.display = 'flex'; }
     function closePreview() { document.getElementById('previewModal').style.display = 'none'; pendingSaveData = null; }
-    function printInvoice() { if (!pendingSaveData) return; const printContent = document.getElementById('previewDetails').innerHTML; const modeText = pendingSaveData.mode === 'sale' ? 'فاتورة بيع' : 'فاتورة شراء'; const personLabel = pendingSaveData.mode === 'sale' ? 'العميل' : 'المورد'; const printWindow = window.open('', '_blank'); printWindow.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>فاتورة</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet"><style>*{font-family:'Cairo',sans-serif;} body{padding:30px;} .container{border:2px solid #d4af37;border-radius:20px;padding:30px;} .header{text-align:center;border-bottom:2px solid #d4af37;padding-bottom:20px;} .details{background:#f9f5e6;padding:15px;border-radius:12px;margin:20px 0;} table{width:100%;border-collapse:collapse;} th,td{border-bottom:1px solid #ddd;padding:10px;text-align:center;} th{background:#d4af37;color:white;} .total{text-align:center;font-size:24px;color:#d4af37;margin-top:20px;}</style></head><body><div class="container"><div class="header"><h1>الشركة الدوائية الحديثة</h1><p>نظام الدكتور بسام العامري</p></div><div class="details"><div><strong>نوع الفاتورة:</strong> ${modeText}</div><div><strong>${personLabel}:</strong> ${pendingSaveData.person}</div><div><strong>التاريخ:</strong> ${pendingSaveData.date}</div><div><strong>الوقت:</strong> ${pendingSaveData.time}</div></div>${printContent}<div class="total"><h3>الإجمالي: ${pendingSaveData.total.toLocaleString()} ريال</h3></div></div><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),1000);}<\/script></body></html>`); printWindow.document.close(); }
+    function printInvoice() { if (!pendingSaveData) return; const printContent = document.getElementById('previewDetails').innerHTML; const modeText = pendingSaveData.mode === 'sale' ? 'فاتورة بيع' : 'فاتورة شراء'; const personLabel = pendingSaveData.mode === 'sale' ? 'العميل' : 'المورد'; const printWindow = window.open('', '_blank'); printWindow.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>فاتورة</title><style>*{font-family:'Segoe UI',Arial,sans-serif;} body{padding:30px;} .container{border:2px solid #d4af37;border-radius:20px;padding:30px;} .header{text-align:center;border-bottom:2px solid #d4af37;padding-bottom:20px;} .details{background:#f9f5e6;padding:15px;border-radius:12px;margin:20px 0;} table{width:100%;border-collapse:collapse;} th,td{border-bottom:1px solid #ddd;padding:10px;text-align:center;} th{background:#d4af37;color:white;} .total{text-align:center;font-size:24px;color:#d4af37;margin-top:20px;}</style></head><body><div class="container"><div class="header"><h1>الشركة الدوائية الحديثة</h1><p>نظام الدكتور بسام العامري</p></div><div class="details"><div><strong>نوع الفاتورة:</strong> ${modeText}</div><div><strong>${personLabel}:</strong> ${pendingSaveData.person}</div><div><strong>التاريخ:</strong> ${pendingSaveData.date}</div><div><strong>الوقت:</strong> ${pendingSaveData.time}</div></div>${printContent}<div class="total"><h3>الإجمالي: ${pendingSaveData.total.toLocaleString()} ريال</h3></div></div><script>window.onload=()=>{window.print();setTimeout(()=>window.close(),1000);}<\/script></body></html>`); printWindow.document.close(); }
     
-    async function exportInvoiceToPDF() { if (!pendingSaveData) return; const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const modeText = pendingSaveData.mode === 'sale' ? 'فاتورة بيع' : 'فاتورة شراء'; const personLabel = pendingSaveData.mode === 'sale' ? 'العميل' : 'المورد'; doc.setFont('helvetica'); doc.setFontSize(20); doc.text('الشركة الدوائية الحديثة', 105, 20, { align: 'center' }); doc.setFontSize(12); doc.text('نظام الدكتور بسام العامري', 105, 28, { align: 'center' }); doc.setFontSize(10); doc.text(`نوع الفاتورة: ${modeText}`, 20, 45); doc.text(`${personLabel}: ${pendingSaveData.person}`, 20, 52); doc.text(`التاريخ: ${pendingSaveData.date}`, 20, 59); doc.text(`الوقت: ${pendingSaveData.time}`, 20, 66); const headers = [['#', 'الصنف', 'الكمية', 'السعر', 'الإجمالي']]; const rows = pendingSaveData.items.map((item, idx) => [(idx + 1).toString(), item.name, item.quantity, item.price.toLocaleString(), item.total.toLocaleString()]); doc.autoTable({ head: headers, body: rows, startY: 75, theme: 'striped', styles: { fontSize: 9, halign: 'center' }, headStyles: { fillColor: [212, 175, 55], textColor: [255, 255, 255] } }); const finalY = doc.lastAutoTable.finalY + 10; doc.setFontSize(14); doc.text(`الإجمالي الكلي: ${pendingSaveData.total.toLocaleString()} ريال`, 105, finalY, { align: 'center' }); doc.save(`فاتورة_${pendingSaveData.person}_${pendingSaveData.date}.pdf`); showMsg('📄 تم تصدير الفاتورة كـ PDF بنجاح', 'success'); }
-    function exportInvoiceToExcel() { if (!pendingSaveData) return; const data = [['الشركة الدوائية الحديثة - نظام الدكتور بسام العامري'],[],['نوع الفاتورة', pendingSaveData.mode === 'sale' ? 'فاتورة بيع' : 'فاتورة شراء'],['العميل/المورد', pendingSaveData.person],['التاريخ', pendingSaveData.date],['الوقت', pendingSaveData.time],[],['#', 'الصنف', 'الكمية', 'السعر', 'الإجمالي']]; pendingSaveData.items.forEach((item, idx) => { data.push([(idx + 1).toString(), item.name, item.quantity, item.price, item.total]); }); data.push([]); data.push(['الإجمالي الكلي', '', '', '', pendingSaveData.total]); const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'الفاتورة'); XLSX.writeFile(wb, `فاتورة_${pendingSaveData.person}_${pendingSaveData.date}.xlsx`); showMsg('📊 تم تصدير الفاتورة كـ Excel بنجاح', 'success'); }
+    async function exportInvoiceToPDF() { if (!pendingSaveData) return; if (typeof jspdf === 'undefined') { showMsg('⚠️ جاري تحميل مكتبة PDF... يرجى المحاولة مرة أخرى', 'warning'); setTimeout(() => exportInvoiceToPDF(), 2000); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); const modeText = pendingSaveData.mode === 'sale' ? 'فاتورة بيع' : 'فاتورة شراء'; const personLabel = pendingSaveData.mode === 'sale' ? 'العميل' : 'المورد'; doc.setFont('helvetica'); doc.setFontSize(20); doc.text('الشركة الدوائية الحديثة', 105, 20, { align: 'center' }); doc.setFontSize(12); doc.text('نظام الدكتور بسام العامري', 105, 28, { align: 'center' }); doc.setFontSize(10); doc.text(`نوع الفاتورة: ${modeText}`, 20, 45); doc.text(`${personLabel}: ${pendingSaveData.person}`, 20, 52); doc.text(`التاريخ: ${pendingSaveData.date}`, 20, 59); doc.text(`الوقت: ${pendingSaveData.time}`, 20, 66); const headers = [['#', 'الصنف', 'الكمية', 'السعر', 'الإجمالي']]; const rows = pendingSaveData.items.map((item, idx) => [(idx + 1).toString(), item.name, item.quantity, item.price.toLocaleString(), item.total.toLocaleString()]); if (typeof doc.autoTable === 'function') { doc.autoTable({ head: headers, body: rows, startY: 75, theme: 'striped', styles: { fontSize: 9, halign: 'center' }, headStyles: { fillColor: [212, 175, 55], textColor: [255, 255, 255] } }); const finalY = doc.lastAutoTable.finalY + 10; doc.setFontSize(14); doc.text(`الإجمالي الكلي: ${pendingSaveData.total.toLocaleString()} ريال`, 105, finalY, { align: 'center' }); } else { doc.text('جاري حساب الإجمالي...', 105, 80, { align: 'center' }); doc.setFontSize(14); doc.text(`الإجمالي الكلي: ${pendingSaveData.total.toLocaleString()} ريال`, 105, 90, { align: 'center' }); } doc.save(`فاتورة_${pendingSaveData.person}_${pendingSaveData.date}.pdf`); showMsg('📄 تم تصدير الفاتورة كـ PDF بنجاح', 'success'); }
+    function exportInvoiceToExcel() { if (!pendingSaveData) return; const data = [['الشركة الدوائية الحديثة - نظام الدكتور بسام العامري'],[],['نوع الفاتورة', pendingSaveData.mode === 'sale' ? 'فاتورة بيع' : 'فاتورة شراء'],['العميل/المورد', pendingSaveData.person],['التاريخ', pendingSaveData.date],['الوقت', pendingSaveData.time],[],['#', 'الصنف', 'الكمية', 'السعر', 'الإجمالي']]; pendingSaveData.items.forEach((item, idx) => { data.push([(idx + 1).toString(), item.name, item.quantity, item.price, item.total]); }); data.push([]); data.push(['الإجمالي الكلي', '', '', '', pendingSaveData.total]); if (typeof XLSX !== 'undefined') { const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'الفاتورة'); XLSX.writeFile(wb, `فاتورة_${pendingSaveData.person}_${pendingSaveData.date}.xlsx`); showMsg('📊 تم تصدير الفاتورة كـ Excel بنجاح', 'success'); } else { showMsg('⚠️ جاري تحميل مكتبة Excel... يرجى المحاولة مرة أخرى', 'warning'); setTimeout(() => exportInvoiceToExcel(), 2000); } }
     
-    async function exportReportToPDF() { const reportContent = document.getElementById('reportData').innerHTML; if (!reportContent || reportContent.includes('لا توجد')) { showMsg('⚠️ لا توجد بيانات للتصدير', 'error'); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); doc.setFont('helvetica'); doc.setFontSize(18); const title = document.getElementById('modalTitle').innerText.replace(/[^\u0600-\u06FF\s]/g, ''); doc.text(title, 105, 20, { align: 'center' }); doc.setFontSize(10); doc.text(`تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}`, 105, 28, { align: 'center' }); const elements = document.querySelectorAll('#reportData .statement-row, #reportData .customer-total-row, #reportData .grand-total-summary, #reportData .stats-card, #reportData .detailed-invoice-row, #reportData .customer-grand-total'); let yPos = 40; for (let element of elements) { const text = element.innerText; if (yPos > 270) { doc.addPage(); yPos = 20; } doc.setFontSize(10); const lines = doc.splitTextToSize(text, 170); doc.text(lines, 15, yPos); yPos += (lines.length * 6) + 4; } doc.save(`تقرير_${title}_${new Date().toISOString().slice(0,10)}.pdf`); showMsg('📄 تم تصدير التقرير كـ PDF بنجاح', 'success'); }
-    function exportReportToExcel() { const reportContent = document.getElementById('reportData').innerHTML; if (!reportContent || reportContent.includes('لا توجد')) { showMsg('⚠️ لا توجد بيانات للتصدير', 'error'); return; } const tempDiv = document.createElement('div'); tempDiv.innerHTML = reportContent; const data = []; const title = document.getElementById('modalTitle').innerText; data.push([title]); data.push([`تاريخ التصدير: ${new Date().toLocaleDateString('ar-EG')}`]); data.push([]); const rows = tempDiv.querySelectorAll('.statement-row, .customer-total-row, .grand-total-summary, .stats-rank, .detailed-invoice-row, .customer-grand-total'); rows.forEach(row => { const text = row.innerText.trim(); if (text) data.push([text]); }); const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'التقرير'); XLSX.writeFile(wb, `تقرير_${title}_${new Date().toISOString().slice(0,10)}.xlsx`); showMsg('📊 تم تصدير التقرير كـ Excel بنجاح', 'success'); }
+    async function exportReportToPDF() { const reportContent = document.getElementById('reportData').innerHTML; if (!reportContent || reportContent.includes('لا توجد')) { showMsg('⚠️ لا توجد بيانات للتصدير', 'error'); return; } if (typeof jspdf === 'undefined') { showMsg('⚠️ جاري تحميل مكتبة PDF... يرجى المحاولة مرة أخرى', 'warning'); setTimeout(() => exportReportToPDF(), 2000); return; } const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); doc.setFont('helvetica'); doc.setFontSize(18); const title = document.getElementById('modalTitle').innerText.replace(/[^\u0600-\u06FF\s]/g, ''); doc.text(title, 105, 20, { align: 'center' }); doc.setFontSize(10); doc.text(`تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}`, 105, 28, { align: 'center' }); const elements = document.querySelectorAll('#reportData .statement-row, #reportData .customer-total-row, #reportData .grand-total-summary, #reportData .stats-card, #reportData .detailed-invoice-row, #reportData .customer-grand-total'); let yPos = 40; for (let element of elements) { const text = element.innerText; if (yPos > 270) { doc.addPage(); yPos = 20; } doc.setFontSize(10); const lines = doc.splitTextToSize(text, 170); doc.text(lines, 15, yPos); yPos += (lines.length * 6) + 4; } doc.save(`تقرير_${title}_${new Date().toISOString().slice(0,10)}.pdf`); showMsg('📄 تم تصدير التقرير كـ PDF بنجاح', 'success'); }
+    function exportReportToExcel() { const reportContent = document.getElementById('reportData').innerHTML; if (!reportContent || reportContent.includes('لا توجد')) { showMsg('⚠️ لا توجد بيانات للتصدير', 'error'); return; } const tempDiv = document.createElement('div'); tempDiv.innerHTML = reportContent; const data = []; const title = document.getElementById('modalTitle').innerText; data.push([title]); data.push([`تاريخ التصدير: ${new Date().toLocaleDateString('ar-EG')}`]); data.push([]); const rows = tempDiv.querySelectorAll('.statement-row, .customer-total-row, .grand-total-summary, .stats-rank, .detailed-invoice-row, .customer-grand-total'); rows.forEach(row => { const text = row.innerText.trim(); if (text) data.push([text]); }); if (typeof XLSX !== 'undefined') { const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'التقرير'); XLSX.writeFile(wb, `تقرير_${title}_${new Date().toISOString().slice(0,10)}.xlsx`); showMsg('📊 تم تصدير التقرير كـ Excel بنجاح', 'success'); } else { showMsg('⚠️ جاري تحميل مكتبة Excel... يرجى المحاولة مرة أخرى', 'warning'); setTimeout(() => exportReportToExcel(), 2000); } }
     
     async function confirmSave() {
         if (isSaving) {
@@ -1199,7 +1281,7 @@
         const originalBtnText = saveBtn.innerHTML;
         
         saveBtn.disabled = true;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        saveBtn.innerHTML = '<i class="fas fa-spinner"></i> جاري الحفظ...';
         saveBtn.style.opacity = '0.6';
         
         showMsg('💾 جاري الحفظ محلياً...', 'info');
