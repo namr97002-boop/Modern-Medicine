@@ -172,6 +172,74 @@
         .header h1 { font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, #fff5e6, #ffd700, #ffb347, #ffd700); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 3s linear infinite; position: relative; z-index: 1; }
         .header p { font-size: 0.95rem; background: linear-gradient(135deg, #e8e0c8, #c9ae5d); -webkit-background-clip: text; background-clip: text; color: transparent; margin-top: 12px; font-weight: 700; position: relative; z-index: 1; }
         
+        /* --- وضع التركيز: إخفاء جميع القوائم والأزرار غير الضرورية --- */
+        .focus-mode .reports-bar,
+        .focus-mode .logout-header,
+        .focus-mode .system-time-header,
+        .focus-mode .inventory-section,
+        .focus-mode .nav-tabs,
+        .focus-mode .btn-report,
+        .focus-mode .btn-sync,
+        .focus-mode .sync-status,
+        .focus-mode .theme-btn,
+        .focus-mode .manual-install-btn,
+        .focus-mode .logout-btn-header,
+        .focus-mode .customer-area button,
+        .focus-mode .action-buttons .btn-clear {
+            display: none !important;
+        }
+        
+        /* إظهار فقط الأزرار الأساسية في وضع التركيز */
+        .focus-mode .action-buttons .btn-preview {
+            display: flex !important;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .focus-mode .customer-area {
+            justify-content: center;
+        }
+        .focus-mode .customer-area select {
+            width: 100%;
+            text-align: center;
+        }
+        .focus-mode .items-table .btn-add {
+            display: none;
+        }
+        /* شريط التبويبات الأساسي (البيع/الشراء) يظهر في وضع التركيز */
+        .focus-mode .nav-tabs {
+            display: flex !important;
+        }
+        
+        /* زر وضع التركيز */
+        .focus-mode-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 2000;
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            border: none;
+            color: #000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .focus-mode-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+        }
+        body.focus-mode .focus-mode-toggle {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        /* تحسين باقي العناصر */
         .reports-bar {
             background: linear-gradient(95deg, rgba(0,0,0,0.75), rgba(255,215,0,0.15));
             backdrop-filter: blur(12px);
@@ -1027,8 +1095,6 @@ input, select, textarea {
         
     </style>
 </head>
-    </style>
-</head>
 <body>
 <img src="https://i.postimg.cc/yYnQ1xNv/17754844627412496861837434544918-copy-275x270.jpg" 
      style="position: fixed !important; 
@@ -1087,6 +1153,11 @@ input, select, textarea {
         <div class="sync-status" id="syncStatus"><i class="fas fa-wifi"></i> <span id="syncStatusText">جاري التحقق...</span></div>
     </div>
     <div class="system-time-header" id="systemLiveTimeHeader"></div>
+    
+    <!-- زر وضع التركيز الجديد -->
+    <button class="focus-mode-toggle" id="focusModeToggle" title="وضع التركيز (إخفاء القوائم)">
+        <i class="fas fa-expand"></i>
+    </button>
 
     <div class="main-card">
         <div class="header">
@@ -1104,6 +1175,13 @@ input, select, textarea {
                 </button>
                 <button class="btn-report btn-report-gold" onclick="showAllCustomersTotal()">
                     <i class="fas fa-users"></i> إجمالي فواتير العملاء
+                </button>
+                <!-- الأزرار الجديدة -->
+                <button class="btn-report" onclick="showTodaySales()" style="background: linear-gradient(135deg, #1e3c72, #2a5298); border-color: #4a90e2;">
+                    <i class="fas fa-calendar-day"></i> 📊 فواتير البيع اليوم
+                </button>
+                <button class="btn-report" onclick="showTodayPurchases()" style="background: linear-gradient(135deg, #2c3e50, #3498db); border-color: #5dade2;">
+                    <i class="fas fa-calendar-day"></i> 📦 فواتير الشراء اليوم
                 </button>
             </div>
             
@@ -2437,13 +2515,15 @@ async function confirmSave() {
             
             let itemsHtml = '';
             for(let i = 0; i < items.length; i++) {
-                itemsHtml += `<tr>
-                    <td>${i+1}</td>
-                    <td>${items[i].name}</td>
-                    <td>${items[i].quantity}</td>
-                    <td>${parseFloat(items[i].price).toLocaleString()}</td>
-                    <td>${items[i].total.toLocaleString()}</td>
-                </tr>`;
+                itemsHtml += `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td>${items[i].name}</td>
+                        <td>${items[i].quantity}</td>
+                        <td>${parseFloat(items[i].price).toLocaleString()}</td>
+                        <td>${items[i].total.toLocaleString()}</td>
+                    </tr>
+                `;
             }
             
             const previewHtml = `
@@ -2739,6 +2819,262 @@ async function confirmSave() {
         
         pendingSaveData = null;
         sessionStorage.removeItem('currentInvoice');
+    }
+    
+    // ========== دوال عرض فواتير اليوم ==========
+    async function showTodaySales() {
+        showMsg('📊 جلب فواتير البيع اليوم...', 'info');
+        
+        const today = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+        let salesData = [];
+        
+        if (isOnline) {
+            const serverData = await callAPI('getAllSalesInvoices');
+            if (Array.isArray(serverData)) salesData = serverData;
+        }
+        
+        const localSales = await getAllLocalSalesInvoices();
+        const localPending = await getPendingInvoices();
+        const localPendingSales = localPending.filter(p => p.mode === 'sale');
+        
+        const todayInvoices = [];
+        
+        // معالجة بيانات السيرفر
+        salesData.forEach(row => {
+            if (!row || row.length < 3) return;
+            const invoiceDate = row[2]; // التاريخ في العمود الثالث عادة
+            if (invoiceDate === today) {
+                let totalAmount = 0;
+                for (let i = 0; i < row.length; i++) {
+                    if (typeof row[i] === 'number' && row[i] > 0) { totalAmount = row[i]; break; }
+                }
+                if (totalAmount === 0 && row[4] && typeof row[4] === 'number') totalAmount = row[4];
+                todayInvoices.push({
+                    customer: row[0] || 'غير محدد',
+                    total: totalAmount,
+                    date: invoiceDate,
+                    time: row[3] || '',
+                    source: 'server',
+                    items: row[1] || []
+                });
+            }
+        });
+        
+        // معالجة الفواتير المحلية (المزامنة)
+        localSales.forEach(inv => {
+            if (inv.date === today) {
+                todayInvoices.push({
+                    customer: inv.customer,
+                    total: inv.total || 0,
+                    date: inv.date,
+                    time: inv.time || '',
+                    source: 'local',
+                    items: inv.items || []
+                });
+            }
+        });
+        
+        // معالجة الفواتير المعلقة
+        localPendingSales.forEach(inv => {
+            if (inv.date === today) {
+                todayInvoices.push({
+                    customer: inv.person,
+                    total: inv.total || 0,
+                    date: inv.date,
+                    time: inv.time || '',
+                    source: 'pending',
+                    items: inv.items || []
+                });
+            }
+        });
+        
+        const container = document.getElementById('reportData');
+        currentReportTitle = `فواتير البيع اليوم (${today})`;
+        document.getElementById('modalTitle').innerHTML = `<i class="fas fa-calendar-day"></i> ${currentReportTitle}`;
+        container.innerHTML = '';
+        
+        if (todayInvoices.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:40px;">
+                <i class="fas fa-inbox" style="font-size: 50px; color: #ffd700;"></i><br>
+                ✨ لا توجد فواتير بيع مسجلة اليوم ✨
+            </div>`;
+        } else {
+            let grandTotal = 0;
+            let tableHtml = `
+                <div style="overflow-x: auto; margin-bottom: 25px;">
+                    <table class="full-invoice-table" style="min-width: 600px;">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>العميل</th>
+                                <th>الوقت</th>
+                                <th>الإجمالي</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            todayInvoices.forEach((inv, idx) => {
+                grandTotal += inv.total;
+                const statusBadge = inv.source === 'pending' ? '<span class="pending-badge">⏳ معلقة</span>' : '<span style="color:#22c55e;">✓ متزامنة</span>';
+                tableHtml += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${inv.customer}</td>
+                        <td>${inv.time || '--:--'}</td>
+                        <td style="color: #ffd700; font-weight: bold;">${inv.total.toLocaleString()} ريال</td>
+                        <td style="text-align:center;">${statusBadge}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="customer-grand-total" style="background: linear-gradient(135deg, #ffd700, #b8860b); margin-top: 20px;">
+                    <i class="fas fa-chart-line"></i>
+                    <small>إجمالي مبيعات اليوم</small>
+                    <span style="font-size: 2rem; margin-top: 8px;">${grandTotal.toLocaleString()} ريال</span>
+                    <small>(${todayInvoices.length} فاتورة)</small>
+                </div>
+                <div class="grand-total-summary" style="margin-top: 15px; background: linear-gradient(135deg, rgba(255,215,0,0.4), rgba(255,180,0,0.3));">
+                    <span><i class="fas fa-chart-line"></i> 🏆 إجمالي مبيعات اليوم</span>
+                    <span style="font-size: 1.8rem;">${grandTotal.toLocaleString()} ريال</span>
+                </div>
+            `;
+            
+            container.innerHTML = tableHtml;
+        }
+        
+        document.getElementById('reportModal').style.display = 'flex';
+    }
+    
+    async function showTodayPurchases() {
+        showMsg('📦 جلب فواتير الشراء اليوم...', 'info');
+        
+        const today = new Date().toLocaleDateString('en-CA');
+        let purchaseData = [];
+        
+        if (isOnline) {
+            const serverData = await callAPI('getAllPurchaseInvoices');
+            if (Array.isArray(serverData)) purchaseData = serverData;
+        }
+        
+        const localPurchases = await getAllLocalPurchaseInvoices();
+        const localPending = await getPendingInvoices();
+        const localPendingPurchases = localPending.filter(p => p.mode === 'buy');
+        
+        const todayInvoices = [];
+        
+        purchaseData.forEach(row => {
+            if (!row || row.length < 3) return;
+            const invoiceDate = row[2];
+            if (invoiceDate === today) {
+                let totalAmount = 0;
+                for (let i = 0; i < row.length; i++) {
+                    if (typeof row[i] === 'number' && row[i] > 0) { totalAmount = row[i]; break; }
+                }
+                if (totalAmount === 0 && row[4] && typeof row[4] === 'number') totalAmount = row[4];
+                todayInvoices.push({
+                    supplier: row[0] || SUPPLIER_NAME,
+                    total: totalAmount,
+                    date: invoiceDate,
+                    time: row[3] || '',
+                    source: 'server',
+                    items: row[1] || []
+                });
+            }
+        });
+        
+        localPurchases.forEach(inv => {
+            if (inv.date === today) {
+                todayInvoices.push({
+                    supplier: inv.supplier || SUPPLIER_NAME,
+                    total: inv.total || 0,
+                    date: inv.date,
+                    time: inv.time || '',
+                    source: 'local',
+                    items: inv.items || []
+                });
+            }
+        });
+        
+        localPendingPurchases.forEach(inv => {
+            if (inv.date === today) {
+                todayInvoices.push({
+                    supplier: inv.person || SUPPLIER_NAME,
+                    total: inv.total || 0,
+                    date: inv.date,
+                    time: inv.time || '',
+                    source: 'pending',
+                    items: inv.items || []
+                });
+            }
+        });
+        
+        const container = document.getElementById('reportData');
+        currentReportTitle = `فواتير الشراء اليوم (${today})`;
+        document.getElementById('modalTitle').innerHTML = `<i class="fas fa-calendar-day"></i> ${currentReportTitle}`;
+        container.innerHTML = '';
+        
+        if (todayInvoices.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:40px;">
+                <i class="fas fa-inbox" style="font-size: 50px; color: #ffd700;"></i><br>
+                ✨ لا توجد فواتير شراء مسجلة اليوم ✨
+            </div>`;
+        } else {
+            let grandTotal = 0;
+            let tableHtml = `
+                <div style="overflow-x: auto; margin-bottom: 25px;">
+                    <table class="full-invoice-table" style="min-width: 600px;">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>المورد</th>
+                                <th>الوقت</th>
+                                <th>الإجمالي</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            todayInvoices.forEach((inv, idx) => {
+                grandTotal += inv.total;
+                const statusBadge = inv.source === 'pending' ? '<span class="pending-badge">⏳ معلقة</span>' : '<span style="color:#22c55e;">✓ متزامنة</span>';
+                tableHtml += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${inv.supplier}</td>
+                        <td>${inv.time || '--:--'}</td>
+                        <td style="color: #ffd700; font-weight: bold;">${inv.total.toLocaleString()} ريال</td>
+                        <td style="text-align:center;">${statusBadge}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="customer-grand-total" style="background: linear-gradient(135deg, #ffd700, #b8860b); margin-top: 20px;">
+                    <i class="fas fa-chart-line"></i>
+                    <small>إجمالي مشتريات اليوم</small>
+                    <span style="font-size: 2rem; margin-top: 8px;">${grandTotal.toLocaleString()} ريال</span>
+                    <small>(${todayInvoices.length} فاتورة)</small>
+                </div>
+                <div class="grand-total-summary" style="margin-top: 15px; background: linear-gradient(135deg, rgba(255,215,0,0.4), rgba(255,180,0,0.3));">
+                    <span><i class="fas fa-chart-line"></i> 🏆 إجمالي مشتريات اليوم</span>
+                    <span style="font-size: 1.8rem;">${grandTotal.toLocaleString()} ريال</span>
+                </div>
+            `;
+            
+            container.innerHTML = tableHtml;
+        }
+        
+        document.getElementById('reportModal').style.display = 'flex';
     }
     
     async function searchCustomerByName() {
@@ -3428,6 +3764,34 @@ async function confirmSave() {
         }
     });
     
+    // ========== وظيفة وضع التركيز الجديدة ==========
+    function initFocusMode() {
+        const toggleBtn = document.getElementById('focusModeToggle');
+        if (!toggleBtn) return;
+        
+        // التحقق من الحالة المحفوظة
+        const isFocusMode = localStorage.getItem('pharma_focus_mode') === 'true';
+        if (isFocusMode) {
+            document.body.classList.add('focus-mode');
+            toggleBtn.innerHTML = '<i class="fas fa-compress"></i>';
+        } else {
+            toggleBtn.innerHTML = '<i class="fas fa-expand"></i>';
+        }
+        
+        toggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('focus-mode');
+            const isActive = document.body.classList.contains('focus-mode');
+            localStorage.setItem('pharma_focus_mode', isActive);
+            if (isActive) {
+                toggleBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                showMsg('🎯 تم تفعيل وضع التركيز (ظهرت الفواتير فقط)', 'success');
+            } else {
+                toggleBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                showMsg('🌟 تم إلغاء وضع التركيز (ظهرت جميع القوائم)', 'success');
+            }
+        });
+    }
+    
     function initLoginSystem() {
         const codeInput = document.getElementById('entryCode');
         const loginBtn = document.getElementById('loginBtn');
@@ -3450,6 +3814,7 @@ async function confirmSave() {
                 updateDateTime();
                 setInterval(updateDateTime, 1000);
                 refreshStockInv();
+                initFocusMode(); // تفعيل وضع التركيز بعد الدخول
             } else {
                 showMsg("⚠️ الرمز السري غير صحيح | 7654", 'error');
                 codeInput.value = "";
