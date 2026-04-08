@@ -172,14 +172,195 @@
         .header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%); animation: rotate 20s linear infinite; }
         .header h1 { font-size: 2.2rem; font-weight: 900; background: linear-gradient(135deg, #fff5e6, #ffd700, #ffb347, #ffd700); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 3s linear infinite; position: relative; z-index: 1; }
         .header p { font-size: 0.95rem; background: linear-gradient(135deg, #e8e0c8, #c9ae5d); -webkit-background-clip: text; background-clip: text; color: transparent; margin-top: 12px; font-weight: 700; position: relative; z-index: 1; }
-        .reports-bar { display: flex; gap: 15px; padding: 18px 25px; justify-content: center; background: linear-gradient(95deg, rgba(0,0,0,0.6), rgba(255,215,0,0.1)); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,215,0,0.3); flex-wrap: wrap; }
-        .btn-report { padding: 12px 24px; border-radius: 60px; border: 1px solid #ffd700; background: rgba(0,0,0,0.5); color: #ffffff; cursor: pointer; font-weight: 800; transition: all 0.3s ease; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
-        .btn-report:hover { background: linear-gradient(135deg, #ffd700, #ffb347); color: #ffffff; box-shadow: 0 0 30px rgba(255,215,0,0.8); transform: translateY(-3px) scale(1.05); }
-        .nav-tabs { display: flex; background: rgba(0,0,0,0.6); padding: 12px 25px; gap: 25px; border-bottom: 1px solid rgba(255,215,0,0.3); }
-        .nav-btn { flex: 1; padding: 14px 0; border: none; background: transparent; color: #ffffff; cursor: pointer; border-radius: 60px; font-weight: 800; transition: all 0.3s ease; font-size: 1rem; position: relative; overflow: hidden; }
-        .nav-btn::before { content: ''; position: absolute; bottom: 0; left: 50%; width: 0; height: 2px; background: #ffd700; transition: all 0.3s ease; transform: translateX(-50%); }
-        .nav-btn:hover::before { width: 80%; }
-        .nav-btn.active { background: linear-gradient(95deg, #d4af37, #ffd700, #f1c40f); color: #ffffff; box-shadow: 0 0 30px rgba(255,215,0,0.9); }
+        
+        /* ==================== شريط الأزرار المحسن (Reports Bar) ==================== */
+        .reports-bar {
+            background: linear-gradient(95deg, rgba(0,0,0,0.75), rgba(255,215,0,0.15));
+            backdrop-filter: blur(12px);
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(255,215,0,0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        /* مجموعة الأزرار الأساسية */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px;
+        }
+        
+        /* نمط موحد للأزرار */
+        .btn-report {
+            padding: 12px 28px;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 215, 0, 0.6);
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 800;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(4px);
+            position: relative;
+            overflow: hidden;
+            min-width: 160px;
+        }
+        
+        .btn-report i {
+            font-size: 1.1rem;
+            transition: transform 0.2s ease;
+        }
+        
+        /* تأثير التوهج عند المرور */
+        .btn-report::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-report:hover::before {
+            left: 100%;
+        }
+        
+        .btn-report:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            border-color: #ffd700;
+        }
+        
+        .btn-report:hover i {
+            transform: scale(1.1);
+        }
+        
+        /* زر مبيعات مميز */
+        .btn-report-sales {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.1));
+            border: 1px solid #ffd700;
+            color: #ffd700;
+        }
+        
+        /* زر مشتريات مميز */
+        .btn-report-purchases {
+            background: linear-gradient(135deg, rgba(100, 200, 255, 0.2), rgba(50, 150, 255, 0.1));
+            border: 1px solid #64c8ff;
+            color: #64c8ff;
+        }
+        
+        /* زر احصائيات ذهبي */
+        .btn-report-gold {
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            border: none;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+        
+        .btn-report-gold:hover {
+            background: linear-gradient(135deg, #e4bf47, #c8961b);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.6);
+        }
+        
+        /* زر بحث خاص */
+        .btn-report-search {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.15));
+            border: 1px solid #3b82f6;
+            color: #93c5fd;
+        }
+        
+        .btn-report-search:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(37, 99, 235, 0.3));
+            color: #ffffff;
+            border-color: #60a5fa;
+        }
+        
+        /* عنوان المجموعة */
+        .group-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            color: #c0aa6e;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+        
+        .group-title i {
+            color: #ffd700;
+            font-size: 0.9rem;
+        }
+        
+        .group-title span {
+            background: rgba(255, 215, 0, 0.15);
+            padding: 4px 16px;
+            border-radius: 30px;
+        }
+        
+        /* تبويبات البيع والشراء */
+        .nav-tabs {
+            display: flex;
+            background: rgba(0,0,0,0.5);
+            padding: 8px 15px;
+            gap: 20px;
+            border-bottom: 1px solid rgba(255,215,0,0.3);
+            justify-content: center;
+        }
+        
+        .nav-btn {
+            flex: 0 1 auto;
+            min-width: 140px;
+            padding: 14px 20px;
+            border: none;
+            background: rgba(255,255,255,0.05);
+            color: #ffffff;
+            cursor: pointer;
+            border-radius: 60px;
+            font-weight: 800;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #ffd700;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+        
+        .nav-btn:hover::before {
+            width: 80%;
+        }
+        
+        .nav-btn.active {
+            background: linear-gradient(95deg, #d4af37, #ffd700, #f1c40f);
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(255,215,0,0.6);
+        }
+        
         .content { padding: 35px; }
         label { display: block; margin-bottom: 12px; color: #ffd700; font-weight: 800; font-size: 0.95rem; }
         .customer-area { display: flex; gap: 18px; align-items: center; margin-bottom: 35px; flex-wrap: wrap; }
@@ -583,7 +764,8 @@
             flex-wrap: wrap;
         }
         
-        @media (max-width: 768px) { .header h1 { font-size: 1.5rem; } .content { padding: 20px; } .item-row { flex-direction: column; } .item-row select, .item-row input { width: 100%; } .system-time-header { font-size: 0.7rem; top: 12px; right: 12px; padding: 5px 12px; } .logout-header { top: 12px; left: 12px; flex-wrap: wrap; } .logout-btn-header, .theme-btn { padding: 6px 12px; font-size: 0.7rem; } .total-val { font-size: 28px; } .alert { white-space: normal; text-align: center; max-width: 90%; } .customer-total-row { flex-direction: column; text-align: center; gap: 10px; } .customer-stats { text-align: center; } .grand-total-summary { flex-direction: column; gap: 10px; text-align: center; } .stats-rank { flex-direction: column; text-align: center; gap: 8px; } .rank-number { margin-bottom: 5px; } .full-invoice-table { font-size: 10px; } .full-invoice-table th, .full-invoice-table td { padding: 4px 3px; } .cinema-btn { padding: 8px 18px; font-size: 14px; flex: 1; text-align: center; } .btn-group-inv { gap: 12px; } .inventory-card h3 { font-size: 1.2em; margin-left: 25px; } .close-inv-btn { top: 12px; left: 15px; width: 28px; height: 28px; font-size: 1em; } .stock-item { flex-direction: column; text-align: center; } }
+        @media (max-width: 768px) { .header h1 { font-size: 1.5rem; } .content { padding: 20px; } .item-row { flex-direction: column; } .item-row select, .item-row input { width: 100%; } .system-time-header { font-size: 0.7rem; top: 12px; right: 12px; padding: 5px 12px; } .logout-header { top: 12px; left: 12px; flex-wrap: wrap; } .logout-btn-header, .theme-btn { padding: 6px 12px; font-size: 0.7rem; } .total-val { font-size: 28px; } .alert { white-space: normal; text-align: center; max-width: 90%; } .customer-total-row { flex-direction: column; text-align: center; gap: 10px; } .customer-stats { text-align: center; } .grand-total-summary { flex-direction: column; gap: 10px; text-align: center; } .stats-rank { flex-direction: column; text-align: center; gap: 8px; } .rank-number { margin-bottom: 5px; } .full-invoice-table { font-size: 10px; } .full-invoice-table th, .full-invoice-table td { padding: 4px 3px; } .cinema-btn { padding: 8px 18px; font-size: 14px; flex: 1; text-align: center; } .btn-group-inv { gap: 12px; } .inventory-card h3 { font-size: 1.2em; margin-left: 25px; } .close-inv-btn { top: 12px; left: 15px; width: 28px; height: 28px; font-size: 1em; } .stock-item { flex-direction: column; text-align: center; }
+        .btn-report { min-width: 130px; padding: 8px 16px; font-size: 0.85rem; } .group-title span { font-size: 0.7rem; } }
         .expired-item { border-right: 4px solid #ef4444 !important; background: rgba(239, 68, 68, 0.1) !important; }
         .warning-item { border-right: 4px solid #f59e0b !important; background: rgba(245, 158, 11, 0.1) !important; }
         .detailed-invoice-row { background: linear-gradient(135deg, #1a1a2e, #0f0f1a); border: 1px solid #ffd70055; margin-bottom: 25px; border-radius: 30px; overflow: hidden; }
@@ -670,13 +852,36 @@
             <p>نظام الدكتور بسام العامري | حيث الدقة تلتقي بالروعة الذهبية</p>
         </div>
 
+        <!-- ==================== شريط الأزرار المحسن ==================== -->
         <div class="reports-bar">
-            <button class="btn-report" onclick="fetchStats('getSalesStats')"><i class="fas fa-chart-line"></i> كمية المبيعات</button>
-            <button class="btn-report" onclick="fetchStats('getBuyStats')"><i class="fas fa-chart-simple"></i> كمية المشتريات</button>
-            <button class="btn-report" onclick="showAllCustomersTotal()"><i class="fas fa-users"></i> إجمالي فواتير العملاء</button>
-            <button class="btn-report" onclick="searchCustomerByName()" style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #ffffff; border: none;"><i class="fas fa-search"></i> 📜 ابحث عن عميل</button>
-            <button class="btn-report" onclick="showAdvancedStats()" style="background: linear-gradient(135deg, #d4af37, #b8860b); color: #ffffff; border: none;"><i class="fas fa-trophy"></i> 🏆 إحصائيات المبيعات</button>
-            <button class="btn-report" onclick="showPurchaseAdvancedStats()" style="background: linear-gradient(135deg, #2c3e50, #1a252f); color: #ffffff;"><i class="fas fa-chart-pie"></i> 📊 إحصائيات المشتريات</button>
+            <!-- المجموعة الأولى: الفواتير والتقارير الأساسية -->
+            <div class="btn-group">
+                <button class="btn-report btn-report-sales" onclick="fetchStats('getSalesStats')">
+                    <i class="fas fa-chart-line"></i> كمية المبيعات
+                </button>
+                <button class="btn-report btn-report-purchases" onclick="fetchStats('getBuyStats')">
+                    <i class="fas fa-chart-simple"></i> كمية المشتريات
+                </button>
+                <button class="btn-report btn-report-gold" onclick="showAllCustomersTotal()">
+                    <i class="fas fa-users"></i> إجمالي فواتير العملاء
+                </button>
+            </div>
+            
+            <!-- المجموعة الثانية: البحث والإحصائيات المتقدمة -->
+            <div class="btn-group">
+                <button class="btn-report btn-report-search" onclick="searchCustomerByName()">
+                    <i class="fas fa-search"></i> 📜 ابحث عن عميل
+                </button>
+                <button class="btn-report btn-report-gold" onclick="showAdvancedStats()">
+                    <i class="fas fa-trophy"></i> 🏆 إحصائيات المبيعات
+                </button>
+                <button class="btn-report" onclick="showPurchaseAdvancedStats()" style="background: linear-gradient(135deg, rgba(44, 62, 80, 0.9), rgba(26, 37, 47, 0.8)); border-color: #4a627a;">
+                    <i class="fas fa-chart-pie"></i> 📊 إحصائيات المشتريات
+                </button>
+            </div>
+            
+            <!-- خط فاصل جمالي اختياري (يمكن إزالته) -->
+            <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.3), transparent); margin: 0 10px;"></div>
         </div>
 
         <div class="nav-tabs">
@@ -2454,13 +2659,13 @@
         async function performLogin() {
             const code = codeInput.value;
             if (code === "7654") {
-                if (window.speechSynthesis) {
-                    window.speechSynthesis.cancel();
-                    const greetingMsg = new SpeechSynthesisUtterance("مرحباً بك دكتور بسام. النظام جاهز ويعمل بدون إنترنت، مرحباً في الشركة الدوائية الحديثة.");
-                    greetingMsg.lang = "ar-SA";
-                    greetingMsg.rate = 0.95;
-                    window.speechSynthesis.speak(greetingMsg);
-                }
+           if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    const greetingMsg = new SpeechSynthesisUtterance("مرحباً بك دكتور بسام، نظامك جاهز للعمل. مرحباً بالشركة الدوائية الحديثة.");
+    greetingMsg.lang = "ar-SA";
+    greetingMsg.rate = 0.95;
+    window.speechSynthesis.speak(greetingMsg);
+}
                 document.body.classList.add('access-granted');
                 loadTheme();
                 await initDB();
