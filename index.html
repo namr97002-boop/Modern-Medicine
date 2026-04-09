@@ -4048,5 +4048,361 @@ async function confirmSave() {
     };
 
 </script>
+<script>
+    // ========== نظام التحقق من المخزون قبل البيع ==========
+    // متغير لتحديد سياسة التعامل مع تجاوز المخزون
+    let stockPolicy = 'warn'; // 'warn' أو 'block'
+    
+    // دالة للتحقق من كمية المخزون المتوفرة لصنف معين
+    async function checkItemStock(itemName, requestedQty) {
+        try {
+            // محاولة جلب بيانات المخزون من API إذا كان متصلاً
+            if (isOnline) {
+                const response = await fetch(INVENTORY_API_URL + "?action=getProducts");
+                const data = await response.json();
+                if (data.success && data.data.length > 0) {
+                    const product = data.data.find(p => p.name === itemName);
+                    if (product) {
+                        return {
+                            available: product.quantity || 0,
+                            currentStock: product.quantity || 0,
+                            price: product.price
+                        };
+                    }
+                }
+            }
+            
+            // إذا كان غير متصل، نستخدم المخزون المحلي
+            const localProduct = inventoryData.find(p => p.name === itemName);
+            if (localProduct) {
+                return {
+                    available: localProduct.stock || localProduct.quantity || 0,
+                    currentStock: localProduct.stock || localProduct.quantity || 0,
+                    price: localProduct.price
+                };
+            }
+            
+            return { available: Infinity, currentStock: 999999, price: null };
+        } catch(e) {
+            console.warn("خطأ في جلب المخزون:", e);
+            return { available: Infinity, currentStock: 999999, price: null };
+        }
+    }
+    
+    // دالة لعرض تنبيه تجاوز المخزون
+    function showStockAlert(itemName, requestedQty, availableQty) {
+        const message = `⚠️ تنبيه المخزون ⚠️\n\nالمنتج: ${itemName}\nالكمية المطلوبة: ${requestedQty}\nالكمية المتوفرة: ${availableQty}\n\n`;
+        
+        if (stockPolicy === 'block') {
+            alert(message + '❌ لا يمكن إتمام العملية. الكمية المطلوبة غير متوفرة في المخزون.');
+            return false;
+        } else {
+            const userConfirm = confirm(message + '⚠️ هل تريد المتابعة مع تجاوز الكمية المتوفرة؟\n(اضغط موافق للمتابعة، إلغاء لتعديل الكمية)');
+            return userConfirm;
+        }
+    }
+    
+    // دالة للتحقق من جميع أصناف الفاتورة قبل الحفظ
+    async function validateStockBeforeSave(invoiceData) {
+        if (invoiceData.mode !== 'sale') {
+            return { valid: true, message: '' };
+        }
+        
+        const stockIssues = [];
+        
+        for (const item of invoiceData.items) {
+            const qty = parseFloat(item.quantity);
+            if (isNaN(qty) || qty <= 0) continue;
+            
+            const stockInfo = await checkItemStock(item.name, qty);
+            if (stockInfo.available < qty && stockInfo.available !== Infinity) {
+                stockIssues.push({
+                    name: item.name,
+                    requested: qty,
+                    available: stockInfo.available
+                });
+            }
+        }
+        
+        if (stockIssues.length > 0) {
+            let message = '⚠️ مشاكل في المخزون ⚠️\n\n';
+            for (const issue of stockIssues) {
+                message += `• ${issue.name}: مطلوب ${issue.requested}، المتوفر ${issue.available}\n`;
+            }
+            message += '\nهل تريد المتابعة مع تجاوز الكميات غير المتوفرة؟';
+            
+            const userConfirm = confirm(message);
+            if (!userConfirm) {
+                return { valid: false, message: 'تم إلغاء العملية بسبب نقص المخزون' };
+            }
+        }
+        
+        return { valid: true, message: '' };
+    }
+    
+    // دالة لتحديث المخزون بعد البيع الناجح
+    async function updateStockAfterSale(invoiceData) {
+        if (invoiceData.mode !== 'sale') return;
+        
+        for (const item of invoiceData.items) {
+            const qty = parseFloat(item.quantity);
+            if (isNaN(qty) || qty <= 0) continue;
+            
+            try {
+                // محاولة تحديث المخزون عبر API إذا كان متصلاً
+                if (isOnline) {
+                    await fetch(INVENTORY_API_URL, {
+                        method: "POST",
+                        mode: "no-cors",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            action: "updateStock",
+                            name: item.name,
+                            quantity: -qty  // طرح الكمية
+                        })
+                    });
+                }
+                
+                // تحديث المخزون المحلي
+                const localItem = inventoryData.find(p => p.name === item.name);
+                if (localItem) {
+                    const currentStock = localItem.stock || localItem.quantity || 0;
+                    localItem.stock = currentStock - qty;
+                    localItem.quantity = currentStock - qty;
+                }
+            } catch(e) {
+                console.warn("فشل تحديث المخزون:", e);
+            }
+        }
+        
+        // حفظ المخزون المحدث محلياً
+        await saveInventoryLocally(inventoryData);
+        refreshStockInv();  // تحديث عرض المخزون
+        refreshInventorySelects();  // تحديث قوائم الأصناف
+    }
+    
+    // دالة لإضافة تنبيه فوري عند تغيير الكمية في صفوف الإدخال
+    function attachStockValidationToInputs() {
+        // مراقبة التغييرات على جميع حقول الكمية
+        document.addEventListener('change', async function(e) {
+            if (e.target && e.target.matches('.item-row input[type="number"]')) {
+                const row = e.target.closest('.item-row');
+                if (!row) return;
+                
+                const select = row.querySelector('select');
+                const itemName = select ? select.value : '';
+                const requestedQty = parseFloat(e.target.value) || 0;
+                
+                if (itemName && requestedQty > 0 && currentMode === 'sale') {
+                    const stockInfo = await checkItemStock(itemName, requestedQty);
+                    
+                    if (stockInfo.available < requestedQty && stockInfo.available !== Infinity) {
+                        e.target.style.borderColor = '#ef4444';
+                        e.target.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                        
+                        // عرض تنبيه منبثق صغير
+                        const warningMsg = document.createElement('div');
+                        warningMsg.className = 'stock-warning-tooltip';
+                        warningMsg.innerHTML = `⚠️ المتوفر: ${stockInfo.available}`;
+                        warningMsg.style.position = 'absolute';
+                        warningMsg.style.backgroundColor = '#ef4444';
+                        warningMsg.style.color = 'white';
+                        warningMsg.style.padding = '4px 8px';
+                        warningMsg.style.borderRadius = '8px';
+                        warningMsg.style.fontSize = '12px';
+                        warningMsg.style.zIndex = '1000';
+                        
+                        const rect = e.target.getBoundingClientRect();
+                        warningMsg.style.top = (rect.top - 30) + 'px';
+                        warningMsg.style.left = rect.left + 'px';
+                        
+                        document.body.appendChild(warningMsg);
+                        setTimeout(() => warningMsg.remove(), 2000);
+                        
+                        if (stockPolicy === 'block') {
+                            e.target.value = Math.min(requestedQty, stockInfo.available);
+                            showMsg(`⚠️ تم تعديل الكمية إلى ${stockInfo.available} (الحد الأقصى المتوفر)`, 'warning');
+                        }
+                    } else {
+                        e.target.style.borderColor = '';
+                        e.target.style.backgroundColor = '';
+                    }
+                }
+            }
+        });
+        
+        // مراقبة التغييرات على قائمة اختيار الصنف
+        document.addEventListener('change', async function(e) {
+            if (e.target && e.target.matches('.item-row select')) {
+                const row = e.target.closest('.item-row');
+                if (!row) return;
+                
+                const qtyInput = row.querySelector('input[type="number"]');
+                const itemName = e.target.value;
+                const currentQty = parseFloat(qtyInput?.value) || 0;
+                
+                if (itemName && currentQty > 0 && currentMode === 'sale') {
+                    const stockInfo = await checkItemStock(itemName, currentQty);
+                    
+                    if (stockInfo.available < currentQty && stockInfo.available !== Infinity) {
+                        qtyInput.style.borderColor = '#ef4444';
+                        qtyInput.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                        showMsg(`⚠️ ${itemName}: المتوفر ${stockInfo.available} فقط`, 'warning');
+                    } else {
+                        qtyInput.style.borderColor = '';
+                        qtyInput.style.backgroundColor = '';
+                    }
+                }
+            }
+        });
+    }
+    
+    // زر لتغيير سياسة المخزون
+    function addStockPolicyToggle() {
+        const headerDiv = document.querySelector('.logout-header');
+        if (headerDiv) {
+            const policyBtn = document.createElement('button');
+            policyBtn.className = 'theme-btn';
+            policyBtn.id = 'stockPolicyBtn';
+            policyBtn.innerHTML = stockPolicy === 'block' ? '🔒 منع التجاوز' : '⚠️ تنبيه فقط';
+            policyBtn.onclick = function() {
+                stockPolicy = stockPolicy === 'block' ? 'warn' : 'block';
+                this.innerHTML = stockPolicy === 'block' ? '🔒 منع التجاوز' : '⚠️ تنبيه فقط';
+                showMsg(`تم تغيير سياسة المخزون إلى: ${stockPolicy === 'block' ? 'منع التجاوز' : 'تنبيه فقط'}`, 'success');
+            };
+            headerDiv.appendChild(policyBtn);
+        }
+    }
+    
+    // تعديل دالة showPreview لإضافة التحقق من المخزون
+    const originalShowPreview = window.showPreview;
+    window.showPreview = async function() {
+        // التحقق من المخزون قبل عرض المعاينة
+        const person = getSelectedPerson();
+        if (!person && currentMode === 'sale') {
+            showMsg('❌ يرجى اختيار العميل أولاً', 'error');
+            return;
+        }
+        
+        // جمع بيانات الفاتورة للتحقق
+        const items = [];
+        const rows = document.querySelectorAll('.item-row');
+        for (const row of rows) {
+            const select = row.querySelector('select');
+            const qty = row.querySelector('input').value;
+            const itemName = select.value;
+            if (itemName && itemName !== "" && qty && parseFloat(qty) > 0) {
+                items.push({
+                    name: itemName,
+                    quantity: qty
+                });
+            }
+        }
+        
+        if (currentMode === 'sale' && items.length > 0) {
+            let hasStockIssue = false;
+            for (const item of items) {
+                const qty = parseFloat(item.quantity);
+                const stockInfo = await checkItemStock(item.name, qty);
+                if (stockInfo.available < qty && stockInfo.available !== Infinity) {
+                    hasStockIssue = true;
+                    if (stockPolicy === 'block') {
+                        showMsg(`❌ لا يمكن بيع ${item.name}: الكمية المطلوبة (${qty}) أكبر من المتوفرة (${stockInfo.available})`, 'error');
+                        return;
+                    }
+                }
+            }
+            
+            if (hasStockIssue && stockPolicy === 'warn') {
+                const confirmContinue = confirm('⚠️ يوجد أصناف كمية المطلوبة أكبر من المتوفرة في المخزون.\nهل تريد المتابعة مع عرض الفاتورة؟');
+                if (!confirmContinue) return;
+            }
+        }
+        
+        // استدعاء الدالة الأصلية
+        originalShowPreview();
+    };
+    
+    // تعديل دالة confirmSave لإضافة تحديث المخزون
+    const originalConfirmSave = window.confirmSave;
+    window.confirmSave = async function() {
+        if (isSaving) {
+            showMsg('⚠️ جاري حفظ الفاتورة حالياً، يرجى الانتظار...', 'warning');
+            return;
+        }
+        
+        if (!pendingSaveData) {
+            showMsg('❌ لا توجد فاتورة للحفظ', 'error');
+            return;
+        }
+        
+        // التحقق من المخزون قبل الحفظ
+        const stockValidation = await validateStockBeforeSave(pendingSaveData);
+        if (!stockValidation.valid) {
+            showMsg(stockValidation.message, 'error');
+            return;
+        }
+        
+        isSaving = true;
+        const saveBtn = document.querySelector('#previewModal .btn-save-preview');
+        const originalBtnText = saveBtn.innerHTML;
+        
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner"></i> جاري الحفظ...';
+        saveBtn.style.opacity = '0.6';
+        
+        showMsg('💾 جاري الحفظ...', 'info');
+        
+        try {
+            await saveInvoiceToLocal(pendingSaveData);
+            
+            // تحديث المخزون بعد الحفظ الناجح
+            await updateStockAfterSale(pendingSaveData);
+            
+            if (!navigator.onLine) {
+                showMsg('📱 تم الحفظ محلياً (بدون نت). سيتم الرفع والمزامنة تلقائياً عند عودة الاتصال.', 'warning');
+                showAlertBanner('⚠️ أنت غير متصل بالإنترنت. الفاتورة محفوظة محلياً وستُرفع لاحقاً.', 'info');
+            } else {
+                showMsg('✅ تم حفظ الفاتورة وتحديث المخزون بنجاح 🎉', 'success');
+            }
+            
+            pendingSaveData = null;
+            closePreview();
+            resetInvoiceForm();
+            refreshStockInv();  // تحديث عرض المخزون
+            
+            if (isOnline && !isSyncing) {
+                showMsg('🔄 يتم المزامنة مع الخادم...', 'info');
+                setTimeout(autoSync, 1000);
+            }
+        } catch (error) {
+            console.error('Save error:', error);
+            showMsg('❌ فشل حفظ الفاتورة: ' + error.message, 'error');
+        } finally {
+            setTimeout(() => {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalBtnText;
+                    saveBtn.style.opacity = '1';
+                }
+                isSaving = false;
+            }, 1000);
+        }
+    };
+    
+    // تهيئة النظام عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', function() {
+        attachStockValidationToInputs();
+        addStockPolicyToggle();
+        
+        // إضافة زر تحديث المخزون في لوحة المخزون إذا لم يكن موجوداً
+        const refreshBtn = document.querySelector('.refresh-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', refreshStockInv);
+        }
+    });
+    
+    console.log('✅ نظام التحقق من المخزون تم تفعيله بنجاح');
+</script>
 </body>
 </html>
