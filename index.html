@@ -1054,6 +1054,26 @@ input, select, textarea {
         /* ========== تحسين إدخال الكمية ========== */
         
         /* تكبير حقل الكمية وجعله أكثر وضوحاً */
+        /* أزرار التحكم في الكمية - جديد */
+.qty-controls {
+    display: inline-flex;
+    gap: 5px;
+    margin-right: 10px;
+}
+.qty-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #d4af37;
+    border: none;
+    color: black;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.qty-btn:active {
+    transform: scale(0.9);
+}
         .item-row input[type="number"] {
             font-size: 1.3rem !important;
             font-weight: bold !important;
@@ -1182,6 +1202,9 @@ input, select, textarea {
                 <button class="btn-report" onclick="showTodaySales()" style="background: linear-gradient(135deg, #1e3c72, #2a5298); border-color: #4a90e2;">
                     <i class="fas fa-calendar-day"></i> 📊 فواتير البيع اليوم
                 </button>
+          <button class="btn-report" onclick="printDailyReport()" style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-color: #ef4444;">
+    <i class="fas fa-print"></i> 🖨️ طباعة تقرير اليوم PDF
+</button>      
                 <button class="btn-report" onclick="showTodayPurchases()" style="background: linear-gradient(135deg, #2c3e50, #3498db); border-color: #5dade2;">
                     <i class="fas fa-calendar-day"></i> 📦 فواتير الشراء اليوم
                 </button>
@@ -2376,7 +2399,33 @@ async function confirmSave() {
     
     function switchMode(mode, btn) { currentMode = mode; document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.getElementById('itemsContainer').innerHTML = ''; updateCustomerArea(); addItemRow(); updateTotal(); }
     
-    function addItemRow() { const id = 'row_' + Date.now() + Math.random(); const div = document.createElement('div'); div.className = 'item-row'; div.id = id; let opts = '<option value="" data-price="0">✨ اختر الصنف ✨</option>'; inventoryData.forEach(p => { opts += `<option value="${p.name}" data-price="${p.price}">${p.name} (${p.price} ريال)</option>`; }); div.innerHTML = `<select style="flex:2" onchange="updateTotal()">${opts}</select><input type="number" inputmode="numeric" pattern="[0-9]*" placeholder="الكمية" style="flex:1; font-size:1.2rem; text-align:center; font-weight:bold;" value="" min="1" step="1" oninput="updateTotal()"><button class="btn btn-del" onclick="removeRow('${id}')"><i class="fas fa-trash-alt"></i></button>`; document.getElementById('itemsContainer').appendChild(div); const selectEl = div.querySelector('select'); const qtyInput = div.querySelector('input'); selectEl.addEventListener('change', () => updateTotal()); qtyInput.addEventListener('input', () => updateTotal()); }
+    function addItemRow() { 
+    const id = 'row_' + Date.now() + Math.random(); 
+    const div = document.createElement('div'); 
+    div.className = 'item-row'; 
+    div.id = id; 
+    let opts = '<option value="" data-price="0">✨ اختر الصنف ✨</option>'; 
+    inventoryData.forEach(p => { 
+        opts += `<option value="${p.name}" data-price="${p.price}">${p.name} (${p.price} ريال)</option>`; 
+    }); 
+    div.innerHTML = `<select style="flex:2" onchange="updateTotal()">${opts}</select>
+    <input type="number" inputmode="numeric" placeholder="الكمية" style="flex:1; font-size:1.2rem; text-align:center; font-weight:bold;" value="1" min="1" step="1" oninput="updateTotal()">
+    <div class="qty-controls">
+        <button class="qty-btn" onclick="changeQty(this, -1)">-</button>
+        <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+    </div>
+    <button class="btn btn-del" onclick="removeRow('${id}')"><i class="fas fa-trash-alt"></i></button>`; 
+    document.getElementById('itemsContainer').appendChild(div); 
+}
+
+function changeQty(btn, delta) {
+    const row = btn.closest('.item-row');
+    const qtyInput = row.querySelector('input');
+    let val = parseInt(qtyInput.value) || 1;
+    val = Math.max(1, val + delta);
+    qtyInput.value = val;
+    updateTotal();
+}
     
     function removeRow(id) { if(document.querySelectorAll('.item-row').length > 1) { document.getElementById(id).remove(); updateTotal(); } else { showMsg('لا يمكن حذف آخر صنف 🎬', 'error'); } }
     
@@ -4038,7 +4087,25 @@ async function confirmSave() {
             }
         }
     }, 60000);
-    
+    // اختصارات الكيبورد - جديد
+document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (pendingSaveData) {
+            confirmSave();
+        } else {
+            showMsg('⚠️ لا توجد فاتورة للحفظ', 'warning');
+        }
+    }
+    if (e.key === 'F2') {
+        e.preventDefault();
+        showPreview();
+    }
+    if (e.key === 'Escape') {
+        closePreview();
+        closeModal();
+    }
+});
     window.onload = () => {
         updateDateTime();
         setInterval(() => { updateDateTime(); }, 1000);
@@ -4402,7 +4469,154 @@ async function confirmSave() {
         }
     });
     
-    console.log('✅ نظام التحقق من المخزون تم تفعيله بنجاح');
+console.log('✅ نظام التحقق من المخزون تم تفعيله بنجاح');
 </script>
+
+<script>
+// ========== حفظ تقرير اليوم PDF مباشرة ==========
+async function printDailyReport() {
+    showMsg('📄 جاري تحضير تقرير اليوم...', 'info');
+    
+    const today = new Date();
+    const todayStr = today.toLocaleDateString('en-CA');
+    const todayDisplay = today.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dayName = today.toLocaleDateString('ar-SA', { weekday: 'long' });
+    
+    let salesData = [];
+    if (isOnline) {
+        const serverData = await callAPI('getAllSalesInvoices');
+        if (Array.isArray(serverData)) salesData = serverData;
+    }
+    
+    const localSales = await getAllLocalSalesInvoices();
+    const localPending = await getPendingInvoices();
+    const localPendingSales = localPending.filter(p => p.mode === 'sale');
+    
+    const todayInvoices = [];
+    
+    salesData.forEach(row => {
+        if (!row || row.length < 3) return;
+        const invoiceDate = row[2];
+        if (invoiceDate === todayStr) {
+            let totalAmount = 0;
+            for (let i = 0; i < row.length; i++) {
+                if (typeof row[i] === 'number' && row[i] > 0) { totalAmount = row[i]; break; }
+            }
+            if (totalAmount === 0 && row[4] && typeof row[4] === 'number') totalAmount = row[4];
+            todayInvoices.push({
+                customer: row[0] || 'غير محدد',
+                total: totalAmount,
+                time: row[3] || ''
+            });
+        }
+    });
+    
+    localSales.forEach(inv => {
+        if (inv.date === todayStr) {
+            todayInvoices.push({
+                customer: inv.customer,
+                total: inv.total || 0,
+                time: inv.time || ''
+            });
+        }
+    });
+    
+    localPendingSales.forEach(inv => {
+        if (inv.date === todayStr) {
+            todayInvoices.push({
+                customer: inv.person,
+                total: inv.total || 0,
+                time: inv.time || ''
+            });
+        }
+    });
+    
+    let grandTotal = 0;
+    let rowsHtml = '';
+    todayInvoices.forEach((inv, idx) => {
+        grandTotal += inv.total;
+        rowsHtml += `
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${idx + 1}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${inv.customer}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${inv.time || '--:--'}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${inv.total.toLocaleString()} ريال</td>
+            </tr>
+        `;
+    });
+    
+    const htmlContent = `
+        <!DOCTYPE html>
+        <html dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <title>تقرير مبيعات ${todayDisplay}</title>
+            <style>
+                body { font-family: 'Cairo', Arial, sans-serif; padding: 30px; }
+                .header { text-align: center; border-bottom: 2px solid #d4af37; padding-bottom: 15px; margin-bottom: 20px; }
+                .header h1 { color: #b8860b; margin: 0; }
+                .date-box { background: #f9f5e6; padding: 10px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                th { background: #d4af37; color: white; padding: 10px; border: 1px solid #ddd; }
+                td { border: 1px solid #ddd; }
+                .total-box { background: #d4af37; color: white; padding: 15px; border-radius: 10px; text-align: center; margin-top: 20px; }
+                .total-box h2 { margin: 0; }
+                .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #999; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>🏥 الشركة الدوائية الحديثة</h1>
+                <p>تقرير المبيعات اليومي - نظام الدكتور بسام العامري</p>
+            </div>
+            <div class="date-box">
+                <strong>🌟 ${dayName} - ${todayDisplay} 🌟</strong>
+            </div>
+            <p><strong>📊 عدد الفواتير:</strong> ${todayInvoices.length} فاتورة</p>
+            <table>
+                <thead>
+                    <tr><th>#</th><th>العميل</th><th>الوقت</th><th>الإجمالي</th></tr>
+                </thead>
+                <tbody>${rowsHtml || '<tr><td colspan="4" style="text-align:center;">✨ لا توجد فواتير اليوم ✨</td></tr>'}</tbody>
+            </table>
+            <div class="total-box">
+                <h2>💰 ${grandTotal.toLocaleString()} ريال</h2>
+                <p>إجمالي مبيعات اليوم</p>
+            </div>
+            <div class="footer">
+                <p>تم التصدير من نظام الدكتور بسام العامري | ${new Date().toLocaleString('ar-EG')}</p>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    if (typeof html2canvas !== 'undefined' && typeof jspdf !== 'undefined') {
+        const { jsPDF } = window.jspdf;
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlContent;
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        document.body.appendChild(tempDiv);
+        
+        html2canvas(tempDiv, { scale: 2 }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 190;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+            pdf.save(`تقرير_المبيعات_${todayStr}.pdf`);
+            document.body.removeChild(tempDiv);
+            showMsg('✅ تم حفظ التقرير كـ PDF بنجاح', 'success');
+        }).catch(() => {
+            document.body.removeChild(tempDiv);
+            showMsg('⚠️ حدث خطأ في حفظ PDF', 'warning');
+        });
+    } else {
+        showMsg('⚠️ جاري تحميل المكتبات... انتظر ثانية ثم حاول مرة أخرى', 'warning');
+        setTimeout(() => printDailyReport(), 2000);
+    }
+}
+</script>
+
 </body>
 </html>
