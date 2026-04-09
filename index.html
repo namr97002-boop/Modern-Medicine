@@ -5470,6 +5470,238 @@ const checkAccess = setInterval(() => {
     }
 }, 500);
 </script>
+<script>
+// ========== الحل النهائي لمنع تكرار الفواتير (الشراء والبيع) ==========
 
+// 1. سجل لتتبع الفواتير التي تمت مزامنتها بالفعل (يمنع التكرار مدى الحياة)
+let syncedInvoicesTracker = new Set();
+
+// 2. تحميل سجل الفواتير المزامنة من localStorage عند بدء التشغيل
+function loadSyncedTracker() {
+    const saved = localStorage.getItem('synced_invoices_log');
+    if (saved) {
+        try {
+            const arr = JSON.parse(saved);
+            syncedInvoicesTracker = new Set(arr);
+            console.log(`✅ تم تحميل سجل المزامنة: ${syncedInvoicesTracker.size} فاتورة مزامنة سابقاً`);
+        } catch(e) {}
+    }
+}
+
+// 3. حفظ فاتورة في سجل المزامنة (بعد نجاح المزامنة)
+function addToSyncedTracker(invoiceId) {
+    if (!invoiceId) return;
+    syncedInvoicesTracker.add(invoiceId);
+    // حفظ كـ array في localStorage
+    localStorage.setItem('synced_invoices_log', JSON.stringify([...syncedInvoicesTracker]));
+}
+
+// 4. التحقق إذا كانت الفاتورة قد تمت مزامنتها من قبل
+function isAlreadySynced(invoiceId) {
+    return syncedInvoicesTracker.has(invoiceId);
+}
+
+// 5. إنشاء معرف فريد للفاتورة (يعتمد على محتواها وليس على الوقت فقط)
+function generateUniqueInvoiceId(invoice) {
+    // نستخدم: النوع (بيع/شراء) + الشخص (عميل/مورد) + التاريخ + الوقت + مجموع الأصناف
+    const itemsHash = invoice.items.map(item => `${item.name}|${item.quantity}|${item.price}`).join('_');
+    const uniqueString = `${invoice.mode}|${invoice.person}|${invoice.date}|${invoice.time}|${invoice.total}|${itemsHash}`;
+    // تشفير بسيط لتقصير الطول
+    let hash = 0;
+    for (let i = 0; i < uniqueString.length; i++) {
+        const char = uniqueString.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return `${invoice.mode}_${Math.abs(hash)}_${invoice.date.replace(/-/g, '')}`;
+}
+
+// 6. تعديل دالة حفظ الفاتورة المحلية - نضيف معرف فريد قبل الحفظ
+const originalSaveInvoiceToLocal = window.saveInvoiceToLocal;
+if (originalSaveInvoiceToLocal) {
+    window.saveInvoiceToLocal = async function(invoiceData) {
+        // إنشاء معرف فريد للفاتورة
+        const uniqueId = generateUniqueInvoiceId(invoiceData);
+        invoiceData.uniqueId = uniqueId;
+        
+        // التحقق: هل هذه الفاتورة موجودة بالفعل في قاعدة البيانات المحلية؟
+        const existingInvoices = await getPendingInvoices();
+        const alreadyExists = existingInvoices.some(inv => inv.uniqueId === uniqueId);
+        
+        if (alreadyExists) {
+            console.log(`⚠️ فاتورة مكررة تم منع حفظها: ${uniqueId}`);
+            showMsg('⚠️ هذه الفاتورة موجودة مسبقاً، تم منع التكرار', 'warning');
+            return null;
+        }
+        
+        // حفظ الفاتورة مع المعرف الفريد
+        return new Promise((resolve, reject) => {
+            if (!db) {
+                reject(new Error('Database not initialized'));
+                return;
+            }
+            
+            const transaction = db.transaction([PENDING_INVOICES_STORE], 'readwrite');
+            const store = transaction.objectStore(PENDING_INVOICES_STORE);
+            
+            const pendingInvoice = {
+                ...invoiceData,
+                uniqueId: uniqueId,
+                timestamp: new Date().toISOString(),
+                synced: false,
+                syncAttempts: 0
+            };
+            
+            const request = store.add(pendingInvoice);
+            
+            request.onsuccess = () => {
+                console.log(`✅ فاتورة محفوظة محلياً برقم فريد: ${uniqueId}`);
+                updatePendingCount();
+                resolve(request.result);
+            };
+            
+            request.onerror = () => {
+                console.error('Failed to save invoice locally');
+                reject(request.error);
+            };
+        });
+    };
+}
+
+// 7. تعديل دالة المزامنة المفردة - نمنع التكرار نهائياً
+const originalSyncSingleInvoice = window.syncSingleInvoice;
+if (originalSyncSingleInvoice) {
+    window.syncSingleInvoice = async function(invoice) {
+        // التحقق الأول: هل هذه الفاتورة تمت مزامنتها من قبل؟
+        if (invoice.uniqueId && isAlreadySynced(invoice.uniqueId)) {
+            console.log(`✅ فاتورة ${invoice.uniqueId} تمت مزامنتها سابقاً، يتم حذفها من قائمة الانتظار فقط`);
+            await removePendingInvoice(invoice.id);
+            return { success: true, invoice, alreadySynced: true };
+        }
+        
+        // التحقق الثاني: منع المزامنة المتزامنة لنفس الفاتورة
+        if (syncingInvoices && syncingInvoices.has(invoice.id)) {
+            console.log(`⚠️ الفاتورة ${invoice.id} قيد المزامنة بالفعل`);
+            return { success: false, error: 'Already syncing', invoice };
+        }
+        
+        if (syncingInvoices) syncingInvoices.add(invoice.id);
+        
+        const action = invoice.mode === 'sale' ? 'sellInvoice' : 'buyInvoice';
+        
+        const fixedItems = invoice.items.map(item => ({
+            name: item.name,
+            quantity: Number(item.quantity),
+            price: Number(item.price),
+            total: Number(item.quantity) * Number(item.price)
+        }));
+        
+        const params = {
+            customer: invoice.person,
+            itemsDetails: JSON.stringify(fixedItems),
+            total: Number(invoice.total),
+            invoiceDate: invoice.date,
+            invoiceTime: invoice.time
+        };
+        
+        try {
+            const res = await callAPIWithRetry(action, params, 2);
+            
+            if (res && res.success) {
+                // تأكيد نجاح المزامنة - تسجيل الفاتورة في سجل المزامنة
+                if (invoice.uniqueId) {
+                    addToSyncedTracker(invoice.uniqueId);
+                }
+                
+                // حفظ نسخة محلية من الفاتورة المتزامنة
+                if (invoice.mode === 'sale') {
+                    await saveSalesInvoiceToLocal({
+                        customer: invoice.person,
+                        items: fixedItems,
+                        total: invoice.total,
+                        date: invoice.date,
+                        time: invoice.time,
+                        syncedAt: new Date().toISOString(),
+                        uniqueId: invoice.uniqueId,
+                        serverConfirmed: true
+                    });
+                } else {
+                    await savePurchaseInvoiceToLocal({
+                        supplier: invoice.person,
+                        items: fixedItems,
+                        total: invoice.total,
+                        date: invoice.date,
+                        time: invoice.time,
+                        syncedAt: new Date().toISOString(),
+                        uniqueId: invoice.uniqueId,
+                        serverConfirmed: true
+                    });
+                }
+                
+                // حذف الفاتورة من قائمة الانتظار
+                await removePendingInvoice(invoice.id);
+                
+                if (syncingInvoices) syncingInvoices.delete(invoice.id);
+                return { success: true, invoice };
+            } else {
+                if (syncingInvoices) syncingInvoices.delete(invoice.id);
+                return { success: false, error: res?.error || 'Sync failed', invoice };
+            }
+        } catch (error) {
+            console.error('Sync error:', error);
+            if (syncingInvoices) syncingInvoices.delete(invoice.id);
+            return { success: false, error: error.message, invoice };
+        }
+    };
+}
+
+// 8. تنظيف الفواتير المكررة الموجودة مسبقاً (مرة واحدة عند التشغيل)
+async function cleanupDuplicateInvoices() {
+    const pending = await getPendingInvoices();
+    const uniqueMap = new Map(); // uniqueId -> invoice
+    
+    for (const invoice of pending) {
+        // إذا لم يكن للفاتورة uniqueId، ننشئ واحداً الآن
+        if (!invoice.uniqueId) {
+            invoice.uniqueId = generateUniqueInvoiceId(invoice);
+        }
+        
+        if (uniqueMap.has(invoice.uniqueId)) {
+            // فاتورة مكررة - نحذف الأحدث (أو الأقدم حسب timestamp)
+            const existing = uniqueMap.get(invoice.uniqueId);
+            const existingTime = new Date(existing.timestamp || 0).getTime();
+            const currentTime = new Date(invoice.timestamp || 0).getTime();
+            
+            if (currentTime >= existingTime) {
+                // الحالية أحدث أو مساوية - نحذف القديمة
+                await removePendingInvoice(existing.id);
+                uniqueMap.set(invoice.uniqueId, invoice);
+                console.log(`🗑️ تم حذف فاتورة مكررة: ${invoice.uniqueId}`);
+            } else {
+                // القديمة أحدث - نحذف الحالية
+                await removePendingInvoice(invoice.id);
+                console.log(`🗑️ تم حذف فاتورة مكررة (الحالية): ${invoice.uniqueId}`);
+            }
+        } else {
+            uniqueMap.set(invoice.uniqueId, invoice);
+        }
+    }
+    
+    console.log(`✅ تنظيف المكررات: ${pending.length - uniqueMap.size} فاتورة مكررة تم حذفها`);
+}
+
+// 9. تشغيل التنظيف عند تحميل الصفحة
+loadSyncedTracker();
+
+// تنفيذ التنظيف بعد تهيئة قاعدة البيانات
+setTimeout(async () => {
+    if (db) {
+        await cleanupDuplicateInvoices();
+        await updatePendingCount();
+    }
+}, 2000);
+
+console.log('✅ نظام منع تكرار الفواتير تم تفعيله بنجاح');
+</script>
 </body>
 </html>
