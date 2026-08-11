@@ -1,4 +1,4 @@
-const CACHE_NAME = "pharma-system-v1";
+const CACHE_NAME = "pharma-system-v2";
 const urlsToCache = [
   "./",
   "./index.html",
